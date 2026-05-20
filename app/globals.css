@@ -1,23 +1,14 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #ff5ca8;
-  --primary-dark: #ee3f92;
-  --secondary: #ffb6d9;
-  --soft-purple: #d8b4fe;
-  --soft: #fff5fa;
-  --background: #fff8fb;
-  --foreground: #24232a;
-  --ink: #1a1a20;
-  --muted: #73707b;
+  --background: #faf7f5;
+  --primary: #c08497;
+  --dark: #2b2b2b;
 }
-
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Poppins, Inter, ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", sans-serif;
-  min-height: 100vh;
+  color: var(--dark);
+  font-family: ui-sans-serif, system-ui;
 }
 
 button,
@@ -30,3 +21,4 @@ input {
   background: var(--primary);
   color: white;
 }
+

@@ -1,7 +1,9 @@
+import { RequestDressButton } from '@/app/components/RequestDressButton';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
 import type { Dress } from '@/app/page';
+import { DressCard } from '@/app/components/DressCard';
 
 function formatPrice(price: Dress['precio'] | undefined) {
   const numericPrice =
@@ -18,11 +20,19 @@ export default async function DetailPage(props: PageProps<'/detalle/[id]'>) {
   const { id } = await props.params;
   const { data: dress } = await supabase
     .from('vestidos')
-    .select('id,nombre,precio,imagen,descripcion,categoria,talla,color')
+    .select('id,nombre,precio,imagen,descripcion,categoria,talla,color,owner_id')
     .eq('id', id)
     .maybeSingle();
 
   const selectedDress = dress as Dress | null;
+const { data: related } = await supabase
+  .from('vestidos')
+  .select('id,nombre,precio,imagen,descripcion,categoria,talla,color')
+  .eq('categoria', selectedDress?.categoria)
+  .neq('id', id)
+  .limit(4);
+
+const relatedDresses = (related as Dress[]) || [];
 
   return (
     <main className="min-h-screen bg-[var(--background)] px-5 py-8 text-[var(--foreground)] sm:px-8">
@@ -39,7 +49,7 @@ export default async function DetailPage(props: PageProps<'/detalle/[id]'>) {
             {selectedDress?.imagen ? (
               <Image
                 alt={selectedDress.nombre ?? 'Vestido DREVA'}
-                className="object-cover"
+               className="object-cover"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -62,6 +72,9 @@ export default async function DetailPage(props: PageProps<'/detalle/[id]'>) {
             <p className="mt-3 text-2xl font-bold text-[var(--primary)]">
               {formatPrice(selectedDress?.precio)}
             </p>
+
+
+
             <p className="mt-5 max-w-xl text-base leading-7 text-[var(--muted)]">
               {selectedDress?.descripcion ??
                 'Este vestido estara disponible para reserva cuando se complete la informacion del catalogo.'}
@@ -74,15 +87,44 @@ export default async function DetailPage(props: PageProps<'/detalle/[id]'>) {
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button className="rounded-2xl bg-[var(--primary)] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-200 transition hover:-translate-y-0.5 hover:bg-[var(--primary-dark)]">
-                Solicitar disponibilidad
-              </button>
-              <button className="rounded-2xl border border-pink-200 px-6 py-3 text-sm font-semibold text-[var(--primary)] transition hover:bg-pink-50">
-                Guardar
-              </button>
+              <a
+  href={`https://wa.me/595XXXXXXXXX?text=Hola, quiero consultar por el vestido ${selectedDress?.nombre}`}
+  target="_blank"
+  className="rounded-2xl bg-green-500 px-6 py-3 text-sm font-semibold text-white text-center hover:bg-green-600 transition"
+>
+  Reservar por WhatsApp
+</a>
+            <RequestDressButton
+  dressId={Number(selectedDress?.id)}
+  ownerId={selectedDress?.owner_id ?? null}
+/>
             </div>
           </div>
         </section>
+        {/* RELACIONADOS */}
+{relatedDresses.length > 0 && (
+  <section className="mt-14">
+    
+    <div className="mb-6 flex items-end justify-between">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">
+          Recomendados
+        </p>
+
+        <h2 className="mt-2 text-3xl font-semibold text-[var(--ink)]">
+          También te puede gustar
+        </h2>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-4">
+      {relatedDresses.map((dress) => (
+        <DressCard key={dress.id} dress={dress} />
+      ))}
+    </div>
+
+  </section>
+)}
       </div>
     </main>
   );
@@ -96,3 +138,4 @@ function Spec({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+

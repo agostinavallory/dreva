@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Dress } from '@/app/page';
+import { FavoriteButton } from "./FavoriteButton";
 
 function formatPrice(price: Dress['precio']) {
   const numericPrice =
@@ -17,62 +18,46 @@ export function DressCard({ dress }: { dress: Dress }) {
   const href = `/detalle/${dress.id}`;
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-pink-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(255,92,168,0.18)]">
+   <article className="group cursor-pointer transition duration-300 hover:-translate-y-1">
       <Link href={href} className="block">
-        <div className="relative aspect-[4/5] overflow-hidden bg-pink-50">
+        
+        {/* IMAGEN */}
+        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-gray-100 shadow-sm transition duration-300 group-hover:shadow-xl group-hover:shadow-pink-100">
           {dress.imagen ? (
             <Image
-              alt={dress.nombre ?? 'Vestido DREVA'}
-              className="object-cover transition duration-500 group-hover:scale-105"
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
               src={dress.imagen}
+              alt={dress.nombre ?? 'Vestido'}
+              fill
+              className="object-cover transition duration-700 ease-out group-hover:scale-110"
             />
           ) : (
-            <div className="grid h-full place-items-center bg-[linear-gradient(135deg,#FFF1F7,#F7E8FF)] px-8 text-center text-sm font-semibold text-[var(--primary)]">
-              DREVA
+            <div className="flex h-full items-center justify-center text-sm text-gray-400">
+              Sin imagen
             </div>
           )}
-          <span className="absolute left-4 top-4 rounded-full bg-[var(--primary)] px-3 py-1 text-xs font-semibold text-white shadow-lg shadow-pink-200">
-            Nuevo
-          </span>
-          <button
-            className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-[var(--ink)] shadow-sm backdrop-blur transition hover:text-[var(--primary)]"
-            type="button"
-            aria-label="Guardar vestido"
-          >
-            ♡
-          </button>
-        </div>
-      </Link>
 
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <Link
-              href={href}
-              className="text-lg font-semibold text-[var(--ink)] transition hover:text-[var(--primary)]"
-            >
-              {dress.nombre ?? 'Vestido DREVA'}
-            </Link>
-            <p className="mt-1 text-sm font-bold text-[var(--primary)]">
-              {formatPrice(dress.precio)}
-            </p>
+          {/* BOTÓN FAVORITO */}
+          <div className="absolute top-3 right-3">
+           <FavoriteButton dressId={dress.id} />
           </div>
-          <span className="rounded-full bg-pink-50 px-3 py-1 text-xs font-semibold text-[var(--primary)]">
-            {dress.talla ?? 'Talla'}
-          </span>
         </div>
 
-        <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-[var(--muted)]">
-          {dress.descripcion ?? 'Vestido seleccionado por DREVA para eventos especiales.'}
-        </p>
+        {/* INFO */}
+        <div className="mt-3 px-1">
+          <h3 className="text-sm font-medium text-[var(--ink)]">
+            {dress.nombre ?? 'Vestido'}
+          </h3>
 
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-pink-50 pt-4 text-xs font-semibold text-[var(--muted)]">
-          <span>{dress.categoria ?? 'Evento'}</span>
-          <span>{dress.color ?? 'Color'}</span>
+          <p className="text-sm font-semibold text-[var(--primary)] mt-1">
+            {formatPrice(dress.precio)}
+          </p>
+
+          <p className="text-xs text-gray-400 mt-1">
+            {dress.categoria} • {dress.color}
+          </p>
         </div>
-      </div>
+
+      </Link>
     </article>
   );
 }

@@ -1,7 +1,8 @@
-import { DressCard } from '@/app/components/DressCard';
-import { FilterSidebar } from '@/app/components/FilterSidebar';
+import { HeroSearch } from "@/app/components/HeroSearch";
+import { CatalogSection } from '@/app/components/CatalogSection';
 import { Navbar } from '@/app/components/Navbar';
 import { supabase } from '@/lib/supabaseClient';
+import { HomeClient } from "@/app/components/HomeClient";
 
 export type Dress = {
   id: string | number;
@@ -12,6 +13,7 @@ export type Dress = {
   categoria: string | null;
   talla: string | null;
   color: string | null;
+  owner_id?: string | null;
 };
 
 const fallbackDresses: Dress[] = [
@@ -32,17 +34,17 @@ const fallbackDresses: Dress[] = [
     precio: 320000,
     imagen:
       'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=900&q=80',
-    descripcion: 'Silueta elegante en verde suave con caida fluida.',
+    descripcion: 'Silueta elegante en morado suave con caida fluida.',
     categoria: 'Boda',
     talla: 'S',
-    color: 'Verde',
+    color: 'Morado',
   },
   {
     id: 'sofia',
     nombre: 'Vestido Sofia',
     precio: 300000,
     imagen:
-      'https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?auto=format&fit=crop&w=900&q=80',
+      'https://i.pinimg.com/236x/4c/cf/74/4ccf74d2bf091c2bf5c7b4664ea66bd2.jpg',
     descripcion: 'Corte princesa azul, ideal para gala y graduaciones.',
     categoria: 'Graduacion',
     talla: 'M',
@@ -87,52 +89,65 @@ export default async function Home() {
   ) as string[];
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <Navbar />
+  <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+    <Navbar />
 
-      <section className="mx-auto grid w-full max-w-7xl gap-8 px-5 pb-10 pt-8 sm:px-8 lg:grid-cols-[300px_1fr] lg:pt-10">
-        <FilterSidebar categories={categories} colors={colors} sizes={sizes} />
+    <section className="mx-auto w-full max-w-7xl px-8 pb-16 pt-10 sm:px-8 lg:pt-10">
 
-        <div className="min-w-0">
-          <div className="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      {/* HERO */}
+      <div className="relative mb-12 overflow-hidden rounded-[2.5rem] bg-[linear-gradient(135deg,#fff1f7_0%,#ffffff_45%,#fdf2ff_100%)] px-6 py-10 shadow-[0_20px_80px_rgba(255,92,168,0.10)] sm:px-10 lg:px-14 lg:py-14">
+
+        <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-pink-200/40 blur-3xl" />
+        <div className="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-fuchsia-100/40 blur-3xl" />
+
+        <div className="relative z-10 max-w-3xl">
+
+          <p className="mb-4 inline-flex rounded-full bg-white/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-[var(--primary)] shadow-sm backdrop-blur">
+            DREVA · Fashion Rental
+          </p>
+
+          <h1 className="text-4xl font-semibold leading-tight tracking-tight text-[var(--ink)] sm:text-5xl">
+            Encuentra el vestido perfecto para tu próximo evento
+          </h1>
+
+          <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--muted)] sm:text-lg">
+            Explora vestidos elegantes para bodas, graduaciones, fiestas y XV años.
+            Reserva de forma rápida, moderna y sin complicaciones.
+          </p>
+
+          {/* Stats */}
+          <div className="mt-8 flex flex-wrap gap-6">
+
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">
-                Catalogo curado
-              </p>
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-[var(--ink)] sm:text-4xl">
-                Vestidos listos para reservar
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)] sm:text-base">
-                Explora prendas elegantes por talla, color y ocasion. DREVA
-                conecta tu evento con el vestido perfecto, sin complicaciones.
-              </p>
+              <p className="text-2xl font-bold text-[var(--ink)]">+80</p>
+              <p className="text-sm text-[var(--muted)]">Vestidos disponibles</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 rounded-3xl border border-pink-100 bg-white/80 p-2 shadow-sm">
-              {[
-                ['24h', 'Respuesta'],
-                ['+80', 'Vestidos'],
-                ['MVP', 'Reserva'],
-              ].map(([value, label]) => (
-                <div key={label} className="px-3 py-2 text-center">
-                  <p className="text-lg font-semibold text-[var(--ink)]">
-                    {value}
-                  </p>
-                  <p className="text-[11px] font-medium text-[var(--muted)]">
-                    {label}
-                  </p>
-                </div>
-              ))}
+            <div>
+              <p className="text-2xl font-bold text-[var(--ink)]">24h</p>
+              <p className="text-sm text-[var(--muted)]">Respuesta rápida</p>
             </div>
+
+            <div>
+              <p className="text-2xl font-bold text-[var(--ink)]">MVP</p>
+              <p className="text-sm text-[var(--muted)]">Reserva simplificada</p>
+            </div>
+
           </div>
 
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {dresses.map((dress) => (
-              <DressCard key={dress.id} dress={dress} />
-            ))}
-          </div>
         </div>
-      </section>
-    </main>
-  );
-}
+      </div>
+
+      {/* CATÁLOGO */}
+      <div className="min-w-0">
+       <HomeClient
+        dresses={dresses}
+        categories={categories}
+        sizes={sizes}
+      colors={colors}
+      />
+      </div>
+
+    </section>
+  </main>
+)};
