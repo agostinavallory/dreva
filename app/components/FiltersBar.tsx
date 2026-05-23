@@ -1,6 +1,3 @@
-import { Dress } from "@/app/page";
-import { DressCard } from "./DressCard";
-
 type Props = {
   categories: string[];
   sizes: string[];

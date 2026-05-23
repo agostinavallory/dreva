@@ -1,5 +1,3 @@
-import { HeroSearch } from "@/app/components/HeroSearch";
-import { CatalogSection } from '@/app/components/CatalogSection';
 import { Navbar } from '@/app/components/Navbar';
 import { supabase } from '@/lib/supabaseClient';
 import { HomeClient } from "@/app/components/HomeClient";

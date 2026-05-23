@@ -3,44 +3,69 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { DressCard } from "@/app/components/DressCard";
+import { useAuth } from "@/app/providers/AuthProvider";
+import type { Dress } from "@/app/page";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id;
   const [loading, setLoading] = useState(true);
-  const [favorites, setFavorites] = useState<any[]>([]);
+  const [favorites, setFavorites] = useState<Dress[]>([]);
 
   useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    let cancelled = false;
+
     const loadData = async () => {
-      const { data } = await supabase.auth.getUser();
-      const currentUser = data.user;
+      if (!userId) {
+        setFavorites([]);
+        setLoading(false);
+        return;
+      }
 
-      setUser(currentUser);
-
-      if (!currentUser) {
-  setLoading(false);
-  return;
-}
+      setLoading(true);
 
       const { data: favs } = await supabase
         .from("favorites")
         .select("dress_id")
-        .eq("user_id", currentUser.id);
+        .eq("user_id", userId);
 
       const ids = favs?.map((f) => f.dress_id) || [];
+
+      if (ids.length === 0) {
+        if (cancelled) {
+          return;
+        }
+
+        setFavorites([]);
+        setLoading(false);
+        return;
+      }
 
       const { data: dresses } = await supabase
         .from("vestidos")
         .select("*")
         .in("id", ids);
 
+      if (cancelled) {
+        return;
+      }
+
       setFavorites(dresses || []);
       setLoading(false);
     };
 
     loadData();
-  }, []);
 
-  if (loading) {
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, userId]);
+
+  if (authLoading || loading) {
   return (
     <main className="p-10">
       <p>Cargando perfil...</p>

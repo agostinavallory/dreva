@@ -1,47 +1,51 @@
 "use client";
-import { supabase } from '@/lib/supabaseClient';
+
 import { useState } from "react";
+import { useAuth } from "@/app/providers/AuthProvider";
+import { supabase } from "@/lib/supabaseClient";
 
 type Props = {
   dressId: number;
- ownerId: string | null;
+  ownerId: string | null;
 };
 
-export function RequestDressButton({
-  dressId,
-  ownerId,
-}: Props) {
+export function RequestDressButton({ dressId, ownerId }: Props) {
+  const { user, loading: authLoading } = useAuth();
   const [open, setOpen] = useState(false);
-async function handleSubmit() {
+
+  async function handleSubmit() {
+    if (authLoading) {
+      return;
+    }
+
     if (!ownerId) {
-  alert("Este vestido todavía no tiene un local asignado");
-  return;
-}
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData.user;
+      alert("Este vestido todavia no tiene un local asignado");
+      return;
+    }
 
-  if (!user) {
-    alert("Debes iniciar sesión");
-    return;
+    if (!user) {
+      alert("Debes iniciar sesion");
+      return;
+    }
+
+    const { error } = await supabase.from("reservations").insert({
+      dress_id: dressId,
+      user_id: user.id,
+      owner_id: ownerId,
+      event_date: new Date().toISOString().split("T")[0],
+      status: "pending",
+    });
+
+    if (error) {
+      console.log("SUPABASE ERROR:", error);
+      alert("Error al enviar solicitud: " + error.message);
+      return;
+    }
+
+    alert("Solicitud enviada correctamente");
+    setOpen(false);
   }
 
-  const { error } = await supabase.from("reservations").insert({
-    dress_id: dressId,
-    user_id: user.id,
-    owner_id: ownerId,
-    event_date: new Date().toISOString().split("T")[0],
-    status: "pending",
-  });
-
-  if (error) {
-   console.log("SUPABASE ERROR:", error);
-alert("Error al enviar solicitud: " + error.message);
-    return;
-  }
-
-  alert("Solicitud enviada correctamente");
-  setOpen(false);
-}
   return (
     <>
       <button
@@ -54,7 +58,6 @@ alert("Error al enviar solicitud: " + error.message);
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
-            
             <h2 className="text-2xl font-semibold text-[var(--ink)]">
               Solicitar vestido
             </h2>
@@ -76,12 +79,12 @@ alert("Error al enviar solicitud: " + error.message);
                 Cancelar
               </button>
 
-           <button
-  onClick={handleSubmit}
-  className="flex-1 rounded-2xl bg-black px-4 py-3 font-semibold text-white"
->
-  Confirmar solicitud
-</button>
+              <button
+                onClick={handleSubmit}
+                className="flex-1 rounded-2xl bg-black px-4 py-3 font-semibold text-white"
+              >
+                Confirmar solicitud
+              </button>
             </div>
           </div>
         </div>
