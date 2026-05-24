@@ -88,15 +88,16 @@ const relatedDresses = (related as Dress[]) || [];
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
-  href={`https://wa.me/595XXXXXXXXX?text=Hola, quiero consultar por el vestido ${selectedDress?.nombre}`}
+  href={`https://wa.me/?text=${encodeURIComponent(`Hola, quiero consultar disponibilidad del vestido ${selectedDress?.nombre ?? 'DREVA'} en DREVA.`)}`}
   target="_blank"
   className="rounded-2xl bg-green-500 px-6 py-3 text-sm font-semibold text-white text-center hover:bg-green-600 transition"
 >
-  Reservar por WhatsApp
+  Agendar por WhatsApp
 </a>
             <RequestDressButton
   dressId={Number(selectedDress?.id)}
   ownerId={selectedDress?.owner_id ?? null}
+  dressName={selectedDress?.nombre ?? 'Vestido DREVA'}
 />
             </div>
           </div>
@@ -138,4 +139,3 @@ function Spec({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
