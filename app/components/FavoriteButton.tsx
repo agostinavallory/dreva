@@ -97,7 +97,7 @@ export function FavoriteButton({ dressId }: Props) {
     e.stopPropagation();
 
     if (!userId) {
-      alert("Debes iniciar sesion");
+      alert("Debes iniciar sesión");
       return;
     }
 

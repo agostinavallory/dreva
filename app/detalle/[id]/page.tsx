@@ -25,10 +25,35 @@ export default async function DetailPage(props: PageProps<'/detalle/[id]'>) {
     .maybeSingle();
 
   const selectedDress = dress as Dress | null;
+
+  if (!selectedDress) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] px-5 py-8 text-[var(--foreground)] sm:px-8">
+        <div className="mx-auto max-w-3xl rounded-3xl border border-pink-100 bg-white p-8 text-center shadow-[0_24px_80px_rgba(255,92,168,0.12)]">
+          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">
+            Vestido no disponible
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold text-[var(--ink)]">
+            No encontramos este vestido
+          </h1>
+          <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[var(--muted)]">
+            Puede que haya sido retirado del catálogo o que el enlace ya no esté activo.
+          </p>
+          <Link
+            href="/"
+            className="mt-6 inline-flex rounded-2xl bg-black px-5 py-3 text-sm font-semibold text-white transition hover:opacity-80"
+          >
+            Volver al catálogo
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
 const { data: related } = await supabase
   .from('vestidos')
   .select('id,nombre,precio,imagen,descripcion,categoria,talla,color')
-  .eq('categoria', selectedDress?.categoria)
+  .eq('categoria', selectedDress.categoria)
   .neq('id', id)
   .limit(4);
 
@@ -41,7 +66,7 @@ const relatedDresses = (related as Dress[]) || [];
           href="/"
           className="mb-6 inline-flex rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)] shadow-sm transition hover:text-[var(--primary)]"
         >
-          Volver al catalogo
+          Volver al catálogo
         </Link>
 
         <section className="grid gap-8 rounded-3xl border border-pink-100 bg-white p-5 shadow-[0_24px_80px_rgba(255,92,168,0.12)] lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
@@ -77,28 +102,33 @@ const relatedDresses = (related as Dress[]) || [];
 
             <p className="mt-5 max-w-xl text-base leading-7 text-[var(--muted)]">
               {selectedDress?.descripcion ??
-                'Este vestido estara disponible para reserva cuando se complete la informacion del catalogo.'}
+                'Este vestido estará disponible para reserva cuando se complete la información del catálogo.'}
             </p>
 
             <div className="mt-8 grid grid-cols-3 gap-3">
               <Spec label="Talla" value={selectedDress?.talla ?? 'M'} />
               <Spec label="Color" value={selectedDress?.color ?? 'Rosa'} />
-              <Spec label="Categoria" value={selectedDress?.categoria ?? 'Evento'} />
+              <Spec label="Categoría" value={selectedDress?.categoria ?? 'Evento'} />
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-  href={`https://wa.me/?text=${encodeURIComponent(`Hola, quiero consultar disponibilidad del vestido ${selectedDress?.nombre ?? 'DREVA'} en DREVA.`)}`}
-  target="_blank"
-  className="rounded-2xl bg-green-500 px-6 py-3 text-sm font-semibold text-white text-center hover:bg-green-600 transition"
->
-  Agendar por WhatsApp
-</a>
-            <RequestDressButton
+              <div className="flex-1">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
+                  Solicitud en DREVA
+                </p>
+                <RequestDressButton
   dressId={Number(selectedDress?.id)}
   ownerId={selectedDress?.owner_id ?? null}
   dressName={selectedDress?.nombre ?? 'Vestido DREVA'}
 />
+              </div>
+              <a
+  href={`https://wa.me/?text=${encodeURIComponent(`Hola, quiero consultar disponibilidad del vestido ${selectedDress?.nombre ?? 'DREVA'} en DREVA.`)}`}
+  target="_blank"
+  className="rounded-2xl border border-green-200 px-6 py-3 text-sm font-semibold text-green-700 text-center hover:bg-green-50 transition sm:self-end"
+>
+  Consultar por WhatsApp
+</a>
             </div>
           </div>
         </section>

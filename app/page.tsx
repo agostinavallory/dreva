@@ -11,6 +11,7 @@ export type Dress = {
   categoria: string | null;
   talla: string | null;
   color: string | null;
+  
   owner_id?: string | null;
 };
 

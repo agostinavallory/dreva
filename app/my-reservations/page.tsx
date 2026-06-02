@@ -403,7 +403,7 @@ export default function MyReservationsPage() {
         <Navbar />
         <section className="mx-auto flex min-h-[70vh] max-w-5xl items-center justify-center px-5">
           <p className="text-sm font-medium text-[var(--muted)]">
-            Redirigiendo a inicio de sesion...
+            Redirigiendo a inicio de sesión...
           </p>
         </section>
       </main>

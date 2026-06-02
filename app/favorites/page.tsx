@@ -126,7 +126,7 @@ export default function FavoritesPage() {
   }
 
   if (!user) {
-    return <p className="p-10">No has iniciado sesion.</p>;
+    return <p className="p-10">No has iniciado sesión.</p>;
   }
 
   return (
@@ -138,7 +138,7 @@ export default function FavoritesPage() {
           No se pudieron cargar tus favoritos: {errorMessage}
         </p>
       ) : favorites.length === 0 ? (
-        <p>No tienes favoritos aun.</p>
+        <p>No tienes favoritos aún.</p>
       ) : (
         <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-4">
           {favorites.map((dress) => (

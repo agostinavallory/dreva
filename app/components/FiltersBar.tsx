@@ -27,8 +27,7 @@ export function FiltersBar({
   
 
   return (
-    <div className="mb-10 bg-white rounded-2xl p-4 shadow-sm flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
+    <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
     <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">
     Categoría
     </p>
@@ -40,11 +39,11 @@ export function FiltersBar({
             onClick={() =>
               setSelectedCategory(cat === selectedCategory ? null : cat)
             }
-            className={`px-4 py-2 rounded-full border text-sm transition ${
-              selectedCategory === cat
-                ? "bg-[var(--primary)] text-white"
-                : "bg-white border-pink-100 hover:bg-pink-50"
-            }`}
+            className={`px-3 py-1 rounded-full text-sm transition ${
+  selectedCategory === cat
+    ? "bg-[#171717] text-white"
+    : "text-[#6B6B6B] hover:text-[#171717]"
+}`}
           >
             {cat}
           </button>
@@ -63,11 +62,11 @@ export function FiltersBar({
             onClick={() =>
               setSelectedSize(size === selectedSize ? null : size)
             }
-            className={`w-10 h-10 rounded-full border flex items-center justify-center text-sm ${
-              selectedSize === size
-                ? "bg-[var(--primary)] text-white"
-                : "border-pink-100 hover:bg-pink-50"
-            }`}
+           className={`px-3 py-1 rounded-full text-xs transition ${
+  selectedSize === size
+    ? "bg-[#171717] text-white"
+    : "text-[#6B6B6B] hover:text-[#171717]"
+}`}
           >
             {size}
           </button>
@@ -80,18 +79,19 @@ export function FiltersBar({
       {/* COLORES */}
       <div className="flex gap-3">
         {colors.map((color) => (
-          <div
-            key={color}
-            onClick={() =>
-              setSelectedColor(color === selectedColor ? null : color)
-            }
-            className={`w-6 h-6 rounded-full cursor-pointer border ${
-              selectedColor === color
-                ? "ring-2 ring-[var(--primary)]"
-                : ""
-            }`}
-            style={{ backgroundColor: color.toLowerCase() }}
-          />
+          <button
+  key={color}
+  onClick={() =>
+    setSelectedColor(color === selectedColor ? null : color)
+  }
+  className={`px-3 py-1 rounded-full text-xs border transition ${
+    selectedColor === color
+      ? "bg-[#171717] text-white border-[#171717]"
+      : "text-[#6B6B6B] border-[#E6E0DA] hover:border-[#171717]"
+  }`}
+>
+  {color}
+</button>
         ))}
       </div>
 

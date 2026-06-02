@@ -14,7 +14,7 @@ export function AuthButton() {
     return (
       <div className="flex gap-3">
         <Link href="/login" className="text-sm font-medium">
-          Iniciar sesion
+          Iniciar sesión
         </Link>
         <Link href="/register" className="text-sm font-medium">
           Registrarse

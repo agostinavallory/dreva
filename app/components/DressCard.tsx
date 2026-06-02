@@ -61,3 +61,4 @@ export function DressCard({ dress }: { dress: Dress }) {
     </article>
   );
 }
+

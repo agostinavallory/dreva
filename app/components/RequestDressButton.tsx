@@ -48,7 +48,7 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
     }
 
     if (!user) {
-      alert("Debes iniciar sesion");
+      alert("Debes iniciar sesión");
       return;
     }
 
@@ -76,7 +76,7 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
     }
 
     if (!user) {
-      alert("Debes iniciar sesion");
+      alert("Debes iniciar sesión");
       return;
     }
 

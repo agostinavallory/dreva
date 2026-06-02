@@ -258,7 +258,7 @@ export default function DashboardPage() {
   if (!user) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5">
-        <p className="text-sm font-medium text-[var(--muted)]">No has iniciado sesion.</p>
+        <p className="text-sm font-medium text-[var(--muted)]">No has iniciado sesión.</p>
       </main>
     );
   }

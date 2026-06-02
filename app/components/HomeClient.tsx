@@ -69,11 +69,23 @@ export function HomeClient({
         setSelectedColor={setSelectedColor}
       />
 
-      <div className="grid grid-cols-2 gap-6 mt-10 md:grid-cols-3 xl:grid-cols-4">
-        {filtered.map((dress) => (
-          <DressCard key={dress.id} dress={dress} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <div className="mt-10 rounded-3xl border border-pink-100 bg-white px-6 py-10 text-center shadow-sm">
+          <h2 className="text-xl font-semibold text-[var(--ink)]">
+            No encontramos vestidos con esos filtros
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
+            Prueba cambiar la búsqueda, la talla, el color o la categoría. La
+            disponibilidad por fecha se mantiene sin cambios en esta fase.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-6 mt-10 md:grid-cols-3 xl:grid-cols-4">
+          {filtered.map((dress) => (
+            <DressCard key={dress.id} dress={dress} />
+          ))}
+        </div>
+      )}
     </>
   );
 }
