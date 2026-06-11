@@ -23,9 +23,10 @@ const fallbackDresses: Dress[] = [
     imagen:
       'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=900&q=80',
     descripcion: 'Tul rosa con detalles delicados para noches especiales.',
-    categoria: 'XV anos',
+    categoria: 'XV años',
     talla: 'M',
     color: 'Rosa',
+    owner_id: null,
   },
   {
     id: 'olivia',
@@ -33,10 +34,11 @@ const fallbackDresses: Dress[] = [
     precio: 320000,
     imagen:
       'https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=900&q=80',
-    descripcion: 'Silueta elegante en morado suave con caida fluida.',
+    descripcion: 'Silueta elegante en morado suave con caída fluida.',
     categoria: 'Boda',
     talla: 'S',
     color: 'Morado',
+    owner_id: null,
   },
   {
     id: 'sofia',
@@ -45,9 +47,10 @@ const fallbackDresses: Dress[] = [
     imagen:
       'https://i.pinimg.com/236x/4c/cf/74/4ccf74d2bf091c2bf5c7b4664ea66bd2.jpg',
     descripcion: 'Corte princesa azul, ideal para gala y graduaciones.',
-    categoria: 'Graduacion',
+    categoria: 'Graduación',
     talla: 'M',
     color: 'Azul',
+    owner_id: null,
   },
   {
     id: 'isabella',
@@ -55,24 +58,27 @@ const fallbackDresses: Dress[] = [
     precio: 280000,
     imagen:
       'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=900&q=80',
-    descripcion: 'Champagne minimalista para eventos de dia o noche.',
+    descripcion: 'Champagne minimalista para eventos de día o noche.',
     categoria: 'Fiesta',
     talla: 'L',
     color: 'Champagne',
+    owner_id: null,
   },
 ];
 
 async function getDresses() {
   const { data, error } = await supabase
     .from('vestidos')
-    .select('id,nombre,precio,imagen,descripcion,categoria,talla,color')
+    .select('id,nombre,precio,imagen,descripcion,categoria,talla,color,owner_id')
     .order('nombre', { ascending: true });
 
-  if (error) {
-    console.error('Supabase vestidos error:', error.message);
-  }
+  
 
-  return data && data.length > 0 ? (data as Dress[]) : fallbackDresses;
+ if (error) {
+  console.error('Supabase vestidos error:', error.message);
+}
+
+return data && data.length > 0 ? (data as Dress[]) : fallbackDresses;
 }
 
 export default async function Home() {
@@ -137,7 +143,7 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* CATÁLOGO */}
+      {/* CATALOGO */}
       <div className="min-w-0">
        <HomeClient
         dresses={dresses}

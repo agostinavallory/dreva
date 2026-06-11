@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
@@ -50,6 +52,16 @@ const STATUS_STYLES: Record<ReservationStatus, string> = {
   expired: "bg-zinc-100 text-zinc-600 border-zinc-200",
 };
 
+const NEXT_STEPS: Record<ReservationStatus, string> = {
+  pending: "Revisa la disponibilidad del vestido para aceptar o rechazar la solicitud.",
+  accepted: "Espera a que la clienta te contacte por WhatsApp y registra la fecha acordada en DREVA.",
+  appointment_scheduled: "Espera a la clienta en tienda y valida su codigo de 4 digitos.",
+  confirmed: "Cuando termine el proceso, marca la reserva como finalizada.",
+  completed: "Reserva finalizada. No quedan acciones pendientes.",
+  cancelled: "Solicitud cancelada. Queda disponible como referencia historica.",
+  expired: "Reserva expirada. No quedan acciones pendientes.",
+};
+
 function formatDate(value: string | null, includeTime = false) {
   if (!value) {
     return "Sin definir";
@@ -68,19 +80,6 @@ function formatDate(value: string | null, includeTime = false) {
     dateStyle: "medium",
     timeStyle: includeTime ? "short" : undefined,
   }).format(date);
-}
-
-function whatsappHref(reservation: Reservation) {
-  const dressName = reservation.vestidos?.nombre ?? "Vestido DREVA";
-  const eventDate = reservation.event_date ?? "fecha a coordinar";
-  const message = [
-    "Hola, soy del local en DREVA.",
-    `Quiero coordinar la cita de prueba por el vestido: ${dressName}.`,
-    `Fecha del evento: ${eventDate}.`,
-    `Referencia DREVA: RES-${reservation.id}.`,
-  ].join(" ");
-
-  return `https://wa.me/?text=${encodeURIComponent(message)}`;
 }
 
 export default function DashboardPage() {
@@ -110,6 +109,22 @@ export default function DashboardPage() {
         expired: 0,
       } as Record<ReservationStatus | "total", number>
     );
+  }, [reservations]);
+
+  const groupedReservations = useMemo(() => {
+    return {
+      pending: reservations.filter((reservation) => reservation.status === "pending"),
+      waitingContact: reservations.filter(
+        (reservation) => reservation.status === "accepted"
+      ),
+      scheduled: reservations.filter(
+        (reservation) => reservation.status === "appointment_scheduled"
+      ),
+      confirmed: reservations.filter((reservation) => reservation.status === "confirmed"),
+      history: reservations.filter((reservation) =>
+        ["completed", "cancelled", "expired"].includes(reservation.status)
+      ),
+    };
   }, [reservations]);
 
   const fetchReservations = useCallback(async (ownerId: string) => {
@@ -278,11 +293,27 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Metric label="Pendientes" value={stats.pending} />
-          <Metric label="Citas registradas" value={stats.appointment_scheduled} />
-          <Metric label="Confirmadas" value={stats.confirmed} />
-          <Metric label="Finalizadas" value={stats.completed} />
+        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <Metric
+            label="Pendientes"
+            value={stats.pending}
+            tone="border-amber-100 bg-amber-50"
+          />
+          <Metric
+            label="Citas programadas"
+            value={stats.appointment_scheduled}
+            tone="border-violet-100 bg-violet-50"
+          />
+          <Metric
+            label="Confirmadas"
+            value={stats.confirmed}
+            tone="border-emerald-100 bg-emerald-50"
+          />
+          <Metric
+            label="Completadas"
+            value={stats.completed}
+            tone="border-zinc-200 bg-white"
+          />
         </div>
 
         {reservations.length === 0 ? (
@@ -290,58 +321,76 @@ export default function DashboardPage() {
             No hay solicitudes todavia.
           </div>
         ) : (
-          <div className="space-y-4">
-            {reservations.map((reservation) => (
-              <article
-                key={reservation.id}
-                className="rounded-2xl border border-pink-100 bg-white p-4 shadow-sm sm:p-5"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-semibold text-[var(--ink)]">
-                        {reservation.vestidos?.nombre ?? "Vestido DREVA"}
-                      </h2>
-                      <span
-                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_STYLES[reservation.status]}`}
-                      >
-                        {STATUS_LABELS[reservation.status]}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs font-semibold text-[var(--primary)]">
-                      Ref. DREVA RES-{reservation.id}
-                    </p>
-                  </div>
-                </div>
+          <div className="space-y-8">
+            <ReservationSection
+              title="Pendientes"
+              description="Solicitudes nuevas que necesitan una respuesta del local."
+              reservations={groupedReservations.pending}
+              emptyMessage="No hay solicitudes pendientes."
+              busyId={busyId}
+              appointmentDrafts={appointmentDrafts}
+              pinDrafts={pinDrafts}
+              setAppointmentDrafts={setAppointmentDrafts}
+              setPinDrafts={setPinDrafts}
+              onTransition={transitionReservation}
+              onValidatePin={validatePin}
+            />
 
-                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-                  <Info label="Evento" value={formatDate(reservation.event_date)} />
-                  <Info label="Cita registrada" value={formatDate(reservation.appointment_date)} />
-                  <Info label="Expira" value={formatDate(reservation.expires_at, true)} />
-                </div>
+            <ReservationSection
+              title="Esperando contacto"
+              description="Reservas aceptadas donde la clienta debe escribir por WhatsApp para coordinar la cita."
+              reservations={groupedReservations.waitingContact}
+              emptyMessage="No hay reservas esperando contacto."
+              busyId={busyId}
+              appointmentDrafts={appointmentDrafts}
+              pinDrafts={pinDrafts}
+              setAppointmentDrafts={setAppointmentDrafts}
+              setPinDrafts={setPinDrafts}
+              onTransition={transitionReservation}
+              onValidatePin={validatePin}
+            />
 
-                <ReservationActions
-                  reservation={reservation}
-                  busy={busyId === reservation.id}
-                  appointmentDraft={appointmentDrafts[reservation.id] ?? ""}
-                  pinDraft={pinDrafts[reservation.id] ?? ""}
-                  setAppointmentDraft={(value) =>
-                    setAppointmentDrafts((current) => ({
-                      ...current,
-                      [reservation.id]: value,
-                    }))
-                  }
-                  setPinDraft={(value) =>
-                    setPinDrafts((current) => ({
-                      ...current,
-                      [reservation.id]: value.replace(/\D/g, "").slice(0, 4),
-                    }))
-                  }
-                  onTransition={transitionReservation}
-                  onValidatePin={validatePin}
-                />
-              </article>
-            ))}
+            <ReservationSection
+              title="Citas programadas"
+              description="Reservas con cita registrada que requieren validacion en tienda."
+              reservations={groupedReservations.scheduled}
+              emptyMessage="No hay citas programadas."
+              busyId={busyId}
+              appointmentDrafts={appointmentDrafts}
+              pinDrafts={pinDrafts}
+              setAppointmentDrafts={setAppointmentDrafts}
+              setPinDrafts={setPinDrafts}
+              onTransition={transitionReservation}
+              onValidatePin={validatePin}
+            />
+
+            <ReservationSection
+              title="Confirmadas"
+              description="Reservas validadas en tienda, listas para cerrar cuando termine el proceso."
+              reservations={groupedReservations.confirmed}
+              emptyMessage="No hay reservas confirmadas."
+              busyId={busyId}
+              appointmentDrafts={appointmentDrafts}
+              pinDrafts={pinDrafts}
+              setAppointmentDrafts={setAppointmentDrafts}
+              setPinDrafts={setPinDrafts}
+              onTransition={transitionReservation}
+              onValidatePin={validatePin}
+            />
+
+            <ReservationSection
+              title="Historial"
+              description="Reservas completadas, canceladas o expiradas."
+              reservations={groupedReservations.history}
+              emptyMessage="Aun no hay reservas en historial."
+              busyId={busyId}
+              appointmentDrafts={appointmentDrafts}
+              pinDrafts={pinDrafts}
+              setAppointmentDrafts={setAppointmentDrafts}
+              setPinDrafts={setPinDrafts}
+              onTransition={transitionReservation}
+              onValidatePin={validatePin}
+            />
           </div>
         )}
       </section>
@@ -349,11 +398,21 @@ export default function DashboardPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
+function Metric({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: string;
+}) {
   return (
-    <div className="rounded-2xl border border-pink-100 bg-white p-4 shadow-sm">
-      <p className="text-2xl font-semibold text-[var(--ink)]">{value}</p>
-      <p className="mt-1 text-xs font-medium text-[var(--muted)]">{label}</p>
+    <div className={`rounded-2xl border p-4 shadow-sm ${tone}`}>
+      <p className="text-3xl font-semibold text-[var(--ink)]">{value}</p>
+      <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+        {label}
+      </p>
     </div>
   );
 }
@@ -364,6 +423,176 @@ function Info({ label, value }: { label: string; value: string }) {
       <p className="text-xs font-semibold text-[var(--muted)]">{label}</p>
       <p className="mt-1 text-sm font-semibold text-[var(--ink)]">{value}</p>
     </div>
+  );
+}
+
+function ReservationSection({
+  title,
+  description,
+  reservations,
+  emptyMessage,
+  busyId,
+  appointmentDrafts,
+  pinDrafts,
+  setAppointmentDrafts,
+  setPinDrafts,
+  onTransition,
+  onValidatePin,
+}: {
+  title: string;
+  description: string;
+  reservations: Reservation[];
+  emptyMessage: string;
+  busyId: string | null;
+  appointmentDrafts: Record<string, string>;
+  pinDrafts: Record<string, string>;
+  setAppointmentDrafts: Dispatch<SetStateAction<Record<string, string>>>;
+  setPinDrafts: Dispatch<SetStateAction<Record<string, string>>>;
+  onTransition: (
+    id: string,
+    action: "accept" | "reject" | "schedule" | "complete",
+    appointmentDate?: string
+  ) => Promise<void>;
+  onValidatePin: (id: string) => Promise<void>;
+}) {
+  return (
+    <section>
+      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-[var(--ink)]">{title}</h2>
+          <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{description}</p>
+        </div>
+        <span className="w-fit rounded-full border border-pink-100 bg-white px-3 py-1 text-xs font-semibold text-[var(--primary)] shadow-sm">
+          {reservations.length} reservas
+        </span>
+      </div>
+
+      {reservations.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-pink-100 bg-white/70 p-5 text-sm font-medium text-[var(--muted)]">
+          {emptyMessage}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {reservations.map((reservation) => (
+            <ReservationCard
+              key={reservation.id}
+              reservation={reservation}
+              busy={busyId === reservation.id}
+              appointmentDraft={appointmentDrafts[reservation.id] ?? ""}
+              pinDraft={pinDrafts[reservation.id] ?? ""}
+              setAppointmentDraft={(value) =>
+                setAppointmentDrafts((current) => ({
+                  ...current,
+                  [reservation.id]: value,
+                }))
+              }
+              setPinDraft={(value) =>
+                setPinDrafts((current) => ({
+                  ...current,
+                  [reservation.id]: value.replace(/\D/g, "").slice(0, 4),
+                }))
+              }
+              onTransition={onTransition}
+              onValidatePin={onValidatePin}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ReservationCard({
+  reservation,
+  busy,
+  appointmentDraft,
+  pinDraft,
+  setAppointmentDraft,
+  setPinDraft,
+  onTransition,
+  onValidatePin,
+}: {
+  reservation: Reservation;
+  busy: boolean;
+  appointmentDraft: string;
+  pinDraft: string;
+  setAppointmentDraft: (value: string) => void;
+  setPinDraft: (value: string) => void;
+  onTransition: (
+    id: string,
+    action: "accept" | "reject" | "schedule" | "complete",
+    appointmentDate?: string
+  ) => Promise<void>;
+  onValidatePin: (id: string) => Promise<void>;
+}) {
+  const dressName = reservation.vestidos?.nombre ?? "Vestido DREVA";
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-pink-100 bg-white shadow-sm">
+      <div className="grid gap-0 sm:grid-cols-[140px_minmax(0,1fr)]">
+        <div className="relative h-48 bg-pink-50 sm:h-full">
+          {reservation.vestidos?.imagen ? (
+            <Image
+              src={reservation.vestidos.imagen}
+              alt={dressName}
+              fill
+              sizes="(max-width: 640px) 100vw, 140px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="grid h-full place-items-center text-sm font-semibold tracking-[0.28em] text-[var(--primary)]">
+              DREVA
+            </div>
+          )}
+        </div>
+
+        <div className="p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-lg font-semibold text-[var(--ink)]">
+                  {dressName}
+                </h3>
+                <span
+                  className={`rounded-full border px-3 py-1 text-xs font-semibold ${STATUS_STYLES[reservation.status]}`}
+                >
+                  {STATUS_LABELS[reservation.status]}
+                </span>
+              </div>
+              <p className="mt-1 text-xs font-semibold text-[var(--primary)]">
+                Ref. DREVA RES-{reservation.id}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+            <Info label="Evento" value={formatDate(reservation.event_date)} />
+            <Info label="Cita registrada" value={formatDate(reservation.appointment_date)} />
+            <Info label="Expira" value={formatDate(reservation.expires_at, true)} />
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-pink-100 bg-[#fffafc] px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--primary)]">
+              Proximo paso
+            </p>
+            <p className="mt-1 text-sm font-medium leading-6 text-[var(--ink)]">
+              {NEXT_STEPS[reservation.status]}
+            </p>
+          </div>
+
+          <ReservationActions
+            reservation={reservation}
+            busy={busy}
+            appointmentDraft={appointmentDraft}
+            pinDraft={pinDraft}
+            setAppointmentDraft={setAppointmentDraft}
+            setPinDraft={setPinDraft}
+            onTransition={onTransition}
+            onValidatePin={onValidatePin}
+          />
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -414,13 +643,9 @@ function ReservationActions({
   if (reservation.status === "accepted") {
     return (
       <div className="mt-4 space-y-3">
-        <a
-          href={whatsappHref(reservation)}
-          target="_blank"
-          className="block rounded-2xl bg-green-600 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-green-700"
-        >
-          Coordinar cita por WhatsApp
-        </a>
+        <p className="rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium leading-6 text-green-800">
+          Esperando contacto de la clienta por WhatsApp.
+        </p>
         <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
           <input
             type="date"

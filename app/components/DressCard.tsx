@@ -36,7 +36,7 @@ export function DressCard({ dress }: { dress: Dress }) {
             </div>
           )}
 
-          {/* BOTÓN FAVORITO */}
+          {/* BOTON FAVORITO */}
           <div className="absolute top-3 right-3">
            <FavoriteButton dressId={dress.id} />
           </div>
@@ -53,7 +53,7 @@ export function DressCard({ dress }: { dress: Dress }) {
           </p>
 
           <p className="text-xs text-gray-400 mt-1">
-            {dress.categoria} • {dress.color}
+            {dress.categoria} - {dress.color}
           </p>
         </div>
 

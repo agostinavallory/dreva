@@ -58,6 +58,11 @@ const { data: related } = await supabase
   .limit(4);
 
 const relatedDresses = (related as Dress[]) || [];
+const { data: local } = await supabase
+  .from('locales')
+  .select('*')
+  .eq('owner_id', selectedDress.owner_id)
+  .maybeSingle();
 
   return (
     <main className="min-h-screen bg-[var(--background)] px-5 py-8 text-[var(--foreground)] sm:px-8">
@@ -97,7 +102,28 @@ const relatedDresses = (related as Dress[]) || [];
             <p className="mt-3 text-2xl font-bold text-[var(--primary)]">
               {formatPrice(selectedDress?.precio)}
             </p>
+            {local && (
+  <Link
+    href={`/local/${local.id}`}
+    className="mt-4 block rounded-2xl border border-pink-100 bg-pink-50 p-4 transition hover:border-pink-200 hover:bg-pink-100"
+  >
+    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
+      Local
+    </p>
 
+    <h3 className="mt-1 text-lg font-semibold text-[var(--ink)]">
+      {local.nombre}
+    </h3>
+
+    <p className="mt-1 text-sm text-[var(--muted)]">
+      {local.ciudad}
+    </p>
+
+    <span className="mt-2 inline-block text-sm font-semibold text-[var(--primary)]">
+      Ver perfil →
+    </span>
+  </Link>
+)}
 
 
             <p className="mt-5 max-w-xl text-base leading-7 text-[var(--muted)]">
@@ -122,13 +148,7 @@ const relatedDresses = (related as Dress[]) || [];
   dressName={selectedDress?.nombre ?? 'Vestido DREVA'}
 />
               </div>
-              <a
-  href={`https://wa.me/?text=${encodeURIComponent(`Hola, quiero consultar disponibilidad del vestido ${selectedDress?.nombre ?? 'DREVA'} en DREVA.`)}`}
-  target="_blank"
-  className="rounded-2xl border border-green-200 px-6 py-3 text-sm font-semibold text-green-700 text-center hover:bg-green-50 transition sm:self-end"
->
-  Consultar por WhatsApp
-</a>
+             
             </div>
           </div>
         </section>

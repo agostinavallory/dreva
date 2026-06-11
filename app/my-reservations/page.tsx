@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Navbar } from "@/app/components/Navbar";
@@ -51,18 +51,10 @@ type LocalSummary = {
   nombre?: string | null;
 };
 
-type TimelineState = "done" | "current" | "waiting" | "closed";
-
-type TimelineItem = {
-  label: string;
-  description: string;
-  state: TimelineState;
-};
-
 const STATUS_LABELS: Record<ReservationStatus, string> = {
   pending: "Solicitud enviada",
   accepted: "Disponibilidad aceptada",
-  appointment_scheduled: "Cita agendada",
+  appointment_scheduled: "Cita programada",
   confirmed: "Reserva confirmada",
   completed: "Finalizada",
   cancelled: "Cancelada",
@@ -79,23 +71,11 @@ const STATUS_STYLES: Record<ReservationStatus, string> = {
   expired: "border-zinc-200 bg-zinc-100 text-zinc-600",
 };
 
-const NEXT_ACTIONS: Record<ReservationStatus, string> = {
-  pending:
-    "DREVA registro tu solicitud y la envio al local. El local debe confirmar si puede avanzar con esta fecha.",
-  accepted:
-    "El local acepto revisar la reserva. La cita se coordina directamente por WhatsApp; DREVA no agenda esa conversacion automaticamente.",
-  appointment_scheduled:
-    "El local ya registro una cita en DREVA. Asiste a la prueba y muestra tu codigo de confirmacion al local.",
-  confirmed:
-    "El local valido tu codigo en tienda. DREVA mantiene la reserva confirmada para la fecha de tu evento.",
-  completed: "El local marco esta reserva como finalizada. Gracias por usar DREVA.",
-  cancelled:
-    "Esta solicitud fue cancelada. Puedes elegir otro vestido cuando quieras.",
-  expired:
-    "La reserva expiro porque no avanzo a tiempo. Puedes solicitar nuevamente si el vestido sigue disponible.",
-};
-
 const TERMINAL_STATUSES: ReservationStatus[] = ["completed", "cancelled", "expired"];
+const ACTION_REQUIRED_STATUSES: ReservationStatus[] = [
+  "accepted",
+  "appointment_scheduled",
+];
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -117,75 +97,37 @@ function formatDate(value: string | null) {
 }
 
 function shouldShowPin(status: ReservationStatus) {
-  return status === "appointment_scheduled" || status === "confirmed";
+  return (
+    status === "accepted" ||
+    status === "appointment_scheduled" ||
+    status === "confirmed"
+  );
 }
 
 function shouldShowWhatsapp(status: ReservationStatus) {
   return status === "accepted" || status === "appointment_scheduled";
 }
 
-function timelineProgress(status: ReservationStatus) {
-  if (status === "pending") {
-    return 0;
-  }
+function recentTime(reservation: Reservation) {
+  const dates = [
+    reservation.created_at,
+    reservation.appointment_date,
+    reservation.event_date,
+  ];
 
-  if (status === "accepted") {
-    return 1;
-  }
+  for (const value of dates) {
+    if (!value) {
+      continue;
+    }
 
-  if (status === "appointment_scheduled") {
-    return 2;
-  }
+    const time = new Date(value).getTime();
 
-  if (status === "confirmed") {
-    return 3;
-  }
-
-  if (status === "completed") {
-    return 4;
+    if (!Number.isNaN(time)) {
+      return time;
+    }
   }
 
   return 0;
-}
-
-function timelineItems(status: ReservationStatus) {
-  const progress = timelineProgress(status);
-  const isClosed = TERMINAL_STATUSES.includes(status) && status !== "completed";
-
-  return [
-    {
-      label: "Solicitud enviada",
-      description: "DREVA recibio tu solicitud y bloqueo el proceso para revision.",
-    },
-    {
-      label: "Confirmar disponibilidad local",
-      description: "El local acepta o rechaza la solicitud desde su panel.",
-    },
-    {
-      label: "Cita de prueba agendada",
-      description: "La fecha se coordina por WhatsApp y el local la registra en DREVA.",
-    },
-    {
-      label: "Reserva confirmada",
-      description: "En tienda, el local valida tu codigo de confirmacion.",
-    },
-    {
-      label: "Finalizada",
-      description: "El local cierra la reserva cuando termina el proceso.",
-    },
-  ].map((item, index): TimelineItem => {
-    let state: TimelineState = index < progress ? "done" : "waiting";
-
-    if (index === progress) {
-      state = status === "completed" ? "done" : "current";
-    }
-
-    if (isClosed && index > 0) {
-      state = "closed";
-    }
-
-    return { ...item, state };
-  });
 }
 
 function whatsappHref(reservation: Reservation) {
@@ -210,12 +152,38 @@ export default function MyReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
-  const activeCount = useMemo(
+  const pendingReservations = useMemo(
     () =>
-      reservations.filter(
-        (reservation) => !TERMINAL_STATUSES.includes(reservation.status),
-      ).length,
+      reservations
+        .filter((reservation) => reservation.status === "pending")
+        .sort((a, b) => recentTime(b) - recentTime(a)),
+    [reservations],
+  );
+  const coordinateReservations = useMemo(
+    () =>
+      reservations
+        .filter((reservation) => reservation.status === "accepted")
+        .sort((a, b) => recentTime(b) - recentTime(a)),
+    [reservations],
+  );
+  const upcomingAppointmentsReservations = useMemo(
+    () =>
+      reservations
+        .filter((reservation) => reservation.status === "appointment_scheduled")
+        .sort((a, b) => recentTime(b) - recentTime(a)),
+    [reservations],
+  );
+  const confirmedReservations = useMemo(
+    () => reservations.filter((reservation) => reservation.status === "confirmed"),
+    [reservations],
+  );
+  const historyReservations = useMemo(
+    () =>
+      reservations.filter((reservation) =>
+        TERMINAL_STATUSES.includes(reservation.status),
+      ),
     [reservations],
   );
 
@@ -388,7 +356,7 @@ export default function MyReservationsPage() {
     return (
       <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
         <Navbar />
-        <section className="mx-auto flex min-h-[70vh] max-w-5xl items-center justify-center px-5">
+        <section className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center px-5">
           <p className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-[var(--muted)] shadow-sm">
             Cargando tus reservas...
           </p>
@@ -401,7 +369,7 @@ export default function MyReservationsPage() {
     return (
       <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
         <Navbar />
-        <section className="mx-auto flex min-h-[70vh] max-w-5xl items-center justify-center px-5">
+        <section className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center px-5">
           <p className="text-sm font-medium text-[var(--muted)]">
             Redirigiendo a inicio de sesión...
           </p>
@@ -414,25 +382,25 @@ export default function MyReservationsPage() {
     <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <Navbar />
 
-      <section className="mx-auto w-full max-w-5xl px-4 pb-16 pt-6 sm:px-8">
-        <div className="mb-6 rounded-[2rem] border border-pink-100 bg-white px-5 py-6 shadow-[0_20px_70px_rgba(255,92,168,0.10)] sm:px-8 sm:py-8">
+      <section className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-8 lg:px-10">
+        <div className="mb-12 rounded-2xl border border-pink-100 bg-white px-6 py-7 shadow-[0_12px_40px_rgba(43,43,43,0.07)] sm:px-10 sm:py-9">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--primary)]">
-            Mis Reservas
+            DREVA
           </p>
           <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h1 className="text-3xl font-semibold leading-tight text-[var(--ink)] sm:text-4xl">
-                Todo claro para tu evento
+                Tus reservas
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted)] sm:text-base">
-                Revisa el avance de cada reserva. DREVA registra los estados; la cita se coordina directamente con el local.
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)] sm:text-base">
+                Lo que esta pasando ahora con tus vestidos.
               </p>
             </div>
-            <div className="rounded-2xl bg-pink-50 px-4 py-3">
-              <p className="text-2xl font-semibold text-[var(--ink)]">{activeCount}</p>
-              <p className="text-xs font-semibold text-[var(--muted)]">
-                Reservas activas
+            <div className="rounded-2xl border border-pink-100 bg-pink-50 px-5 py-4">
+              <p className="text-2xl font-semibold text-[var(--ink)]">
+                {coordinateReservations.length + upcomingAppointmentsReservations.length}
               </p>
+              <p className="text-xs font-semibold text-[var(--muted)]">En proceso</p>
             </div>
           </div>
         </div>
@@ -447,7 +415,7 @@ export default function MyReservationsPage() {
               Aun no tienes reservas
             </h2>
             <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
-              Cuando solicites un vestido, aqui veras el avance del proceso, la cita registrada y el codigo para el local.
+              Cuando solicites un vestido, lo veras aqui.
             </p>
             <Link
               href="/"
@@ -457,14 +425,111 @@ export default function MyReservationsPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-5">
-            {reservations.map((reservation, index) => (
-              <ReservationCard
-                key={reservation.id}
-                reservation={reservation}
-                priority={index === 0}
-              />
-            ))}
+          <div className="flex flex-col gap-14">
+            <ReservationSection
+              title="Esperando respuesta"
+              description="El local aun no respondio."
+              emptyMessage="Nada en espera por ahora."
+              isEmpty={pendingReservations.length === 0}
+              count={pendingReservations.length}
+              tone="pending"
+            >
+              {pendingReservations.map((reservation) => (
+                <ReservationCard
+                  key={reservation.id}
+                  reservation={reservation}
+                  priority={false}
+                  variant="pending"
+                />
+              ))}
+            </ReservationSection>
+
+            <ReservationSection
+              title="Coordina tu cita"
+              description="Coordina tu cita por WhatsApp."
+              emptyMessage="Nada que coordinar."
+              isEmpty={coordinateReservations.length === 0}
+              count={coordinateReservations.length}
+              tone="coordinate"
+            >
+              {coordinateReservations.map((reservation, index) => (
+                <ReservationCard
+                  key={reservation.id}
+                  reservation={reservation}
+                  priority={index === 0}
+                  variant="action"
+                />
+              ))}
+            </ReservationSection>
+
+            <ReservationSection
+              title="Proximas citas"
+              description="Ya tienes una cita programada."
+              emptyMessage="Sin citas programadas."
+              isEmpty={upcomingAppointmentsReservations.length === 0}
+              count={upcomingAppointmentsReservations.length}
+              tone="upcoming"
+            >
+              {upcomingAppointmentsReservations.map((reservation) => (
+                <ReservationCard
+                  key={reservation.id}
+                  reservation={reservation}
+                  priority={false}
+                  variant="action"
+                />
+              ))}
+            </ReservationSection>
+
+            <ReservationSection
+              title="Confirmadas"
+              description="Listas para tu evento."
+              emptyMessage="Aun sin confirmar."
+              isEmpty={confirmedReservations.length === 0}
+              count={confirmedReservations.length}
+              tone="confirmed"
+            >
+              {confirmedReservations.map((reservation) => (
+                <ReservationCard
+                  key={reservation.id}
+                  reservation={reservation}
+                  priority={false}
+                  variant="confirmed"
+                />
+              ))}
+            </ReservationSection>
+
+            <ReservationSection
+              title="Historial"
+              description="Aqui veras tus reservas anteriores."
+              emptyMessage="Sin historial todavia."
+              isEmpty={historyReservations.length === 0}
+              count={historyReservations.length}
+              tone="history"
+              headerAction={
+                historyReservations.length > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowHistory((current) => !current)}
+                    className="inline-flex w-full items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-[var(--ink)] transition hover:border-pink-200 hover:bg-pink-50 sm:w-auto"
+                  >
+                    {showHistory ? "Ocultar historial" : "Ver historial"}
+                  </button>
+                ) : undefined
+              }
+            >
+              {showHistory ? (
+                historyReservations.map((reservation) => (
+                  <HistoryReservationCard
+                    key={reservation.id}
+                    reservation={reservation}
+                  />
+                ))
+              ) : (
+                <p className="rounded-2xl border border-zinc-100 bg-zinc-50 px-5 py-5 text-sm font-medium text-[var(--muted)]">
+                  Toca &quot;Ver historial&quot; para ver reservas anteriores.
+                </p>
+              )}
+            </ReservationSection>
           </div>
         )}
       </section>
@@ -472,45 +537,134 @@ export default function MyReservationsPage() {
   );
 }
 
+type SectionTone = "pending" | "coordinate" | "upcoming" | "confirmed" | "history";
+
+const SECTION_TONE_STYLES: Record<
+  SectionTone,
+  { container: string; divider: string; accent: string; empty: string }
+> = {
+  pending: {
+    container:
+      "border border-zinc-200 bg-zinc-50/60 shadow-[0_10px_36px_rgba(43,43,43,0.05)]",
+    divider: "border-zinc-200",
+    accent: "bg-amber-300",
+    empty: "border-zinc-100 bg-white",
+  },
+  coordinate: {
+    container:
+      "border border-pink-200 bg-pink-50/40 shadow-[0_14px_44px_rgba(255,92,168,0.12)] ring-1 ring-pink-100",
+    divider: "border-pink-200/80",
+    accent: "bg-[var(--primary)]",
+    empty: "border-pink-100 bg-white",
+  },
+  upcoming: {
+    container:
+      "border border-sky-200 bg-sky-50/50 shadow-[0_10px_36px_rgba(14,165,233,0.08)]",
+    divider: "border-sky-200/80",
+    accent: "bg-sky-400",
+    empty: "border-sky-100 bg-white",
+  },
+  confirmed: {
+    container:
+      "border border-fuchsia-200 bg-fuchsia-50/40 shadow-[0_10px_36px_rgba(217,70,239,0.08)]",
+    divider: "border-fuchsia-200/80",
+    accent: "bg-fuchsia-400",
+    empty: "border-fuchsia-100 bg-white",
+  },
+  history: {
+    container:
+      "border border-zinc-200 bg-zinc-100/50 shadow-[0_6px_24px_rgba(43,43,43,0.04)]",
+    divider: "border-zinc-200",
+    accent: "bg-zinc-300",
+    empty: "border-zinc-100 bg-zinc-50",
+  },
+};
+
+function ReservationSection({
+  title,
+  description,
+  emptyMessage,
+  isEmpty,
+  count,
+  tone,
+  headerAction,
+  children,
+}: {
+  title: string;
+  description?: string;
+  emptyMessage: string;
+  isEmpty: boolean;
+  count: number;
+  tone: SectionTone;
+  headerAction?: ReactNode;
+  children: ReactNode;
+}) {
+  const styles = SECTION_TONE_STYLES[tone];
+
+  return (
+    <section className={`overflow-hidden rounded-2xl p-6 sm:p-8 ${styles.container}`}>
+      <div className={`mb-1 h-1 w-14 rounded-full ${styles.accent}`} />
+      <div
+        className={`mb-6 mt-5 flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-start sm:justify-between ${styles.divider}`}
+      >
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl font-semibold text-[var(--ink)] sm:text-2xl">
+            {title} ({count})
+          </h2>
+          {description ? (
+            <p className="mt-1.5 max-w-2xl text-sm leading-5 text-[var(--muted)]">
+              {description}
+            </p>
+          ) : null}
+        </div>
+        {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
+      </div>
+
+      {isEmpty ? (
+        <p
+          className={`rounded-2xl border px-5 py-5 text-sm font-medium text-[var(--muted)] ${styles.empty}`}
+        >
+          {emptyMessage}
+        </p>
+      ) : (
+        <div className="space-y-6">{children}</div>
+      )}
+    </section>
+  );
+}
+
 function ReservationCard({
   reservation,
   priority,
+  variant,
 }: {
   reservation: Reservation;
   priority: boolean;
+  variant: "action" | "confirmed" | "pending";
 }) {
   const dressName = reservation.vestidos?.nombre ?? "Vestido DREVA";
-  const localName = reservation.locales?.nombre ?? "Local por confirmar";
+  const localName = reservation.locales?.nombre ?? "Confirmando local";
+  const isAccepted = reservation.status === "accepted";
+  const isAppointmentScheduled = reservation.status === "appointment_scheduled";
 
   return (
-    <article className="rounded-[1.5rem] border border-pink-100 bg-white p-3 shadow-[0_18px_60px_rgba(43,43,43,0.07)] md:overflow-hidden md:rounded-[2rem] md:p-0">
-      <div className="grid min-w-0 gap-0 md:grid-cols-[220px_minmax(0,1fr)]">
-        <div className="relative h-[240px] max-h-[260px] overflow-hidden rounded-xl bg-pink-50 md:h-full md:max-h-none md:min-h-full md:rounded-none">
-          {reservation.vestidos?.imagen ? (
-            <Image
-              src={reservation.vestidos.imagen}
-              alt={dressName}
-              fill
-              priority={priority}
-              sizes="(max-width: 767px) calc(100vw - 56px), 220px"
-              className="object-cover"
-            />
-          ) : (
-            <div className="grid h-full place-items-center text-lg font-semibold tracking-[0.32em] text-[var(--primary)]">
-              DREVA
-            </div>
-          )}
-        </div>
+    <article className="overflow-hidden rounded-[2rem] border border-pink-100 bg-white shadow-[0_20px_70px_rgba(43,43,43,0.08)]">
+      <div className="grid min-w-0 md:grid-cols-[minmax(240px,32%)_minmax(0,1fr)]">
+        <DressImage
+          image={reservation.vestidos?.imagen}
+          dressName={dressName}
+          priority={priority}
+          className="h-[280px] md:h-full md:min-h-[320px]"
+          sizes="(max-width: 767px) 100vw, 320px"
+        />
 
-        <div className="min-w-0 px-1 py-5 sm:px-2 md:p-6">
+        <div className="min-w-0 p-6 sm:p-8">
           <div className="flex min-w-0 flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="min-w-0">
               <h2 className="text-xl font-semibold leading-tight text-[var(--ink)] sm:text-2xl">
                 {dressName}
               </h2>
-              <p className="mt-2 text-sm font-medium text-[var(--muted)]">
-                {localName}
-              </p>
+              <p className="mt-2 text-sm text-[var(--muted)]">{localName}</p>
             </div>
             <span
               className={`w-fit rounded-full border px-3 py-1.5 text-xs font-semibold ${STATUS_STYLES[reservation.status]}`}
@@ -519,46 +673,56 @@ function ReservationCard({
             </span>
           </div>
 
-          <div className="mt-5 grid min-w-0 gap-3 md:grid-cols-2">
-            <InfoPill label="Fecha del evento" value={formatDate(reservation.event_date)} />
-            <InfoPill
-              label="Cita de prueba registrada"
-              value={formatDate(reservation.appointment_date)}
-            />
-          </div>
+          {variant === "confirmed" || variant === "pending" ? (
+            <div className="mt-6 space-y-5">
+              <div className="max-w-md rounded-2xl bg-pink-50/80 px-4 py-3">
+                <p className="text-xs font-semibold text-[var(--muted)]">
+                  Fecha del evento
+                </p>
+                <p className="mt-1 text-sm font-semibold text-[var(--ink)]">
+                  {formatDate(reservation.event_date)}
+                </p>
+              </div>
 
-          <p className="mt-5 rounded-2xl bg-[#faf7f5] px-4 py-3 text-sm font-medium leading-6 text-[var(--ink)]">
-            {NEXT_ACTIONS[reservation.status]}
-          </p>
+              {variant === "confirmed" &&
+                shouldShowPin(reservation.status) &&
+                reservation.client_pin && <PinBlock pin={reservation.client_pin} />}
+            </div>
+          ) : (
+            <div className="mt-6 space-y-5">
+              <div className="rounded-2xl bg-[#faf7f5] px-4 py-3.5">
+                <p className="text-sm font-semibold text-[var(--ink)]">
+                  {isAccepted ? "El local acepto." : "Cita registrada."}
+                </p>
+                <p className="mt-1 text-sm text-[var(--muted)]">
+                  {isAccepted
+                    ? "Escribele por WhatsApp."
+                    : "Ve al local con tu PIN."}
+                </p>
+              </div>
 
-          <Timeline status={reservation.status} />
+              {isAppointmentScheduled && (
+                <div className="max-w-md rounded-2xl bg-sky-50 px-4 py-3">
+                  <p className="text-xs font-semibold text-sky-700">Tu cita</p>
+                  <p className="mt-1 text-sm font-semibold text-[var(--ink)]">
+                    {formatDate(reservation.appointment_date)}
+                  </p>
+                </div>
+              )}
 
-          {(shouldShowWhatsapp(reservation.status) ||
-            shouldShowPin(reservation.status)) && (
-            <div className="mt-6 grid min-w-0 gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-stretch">
+              {shouldShowPin(reservation.status) && reservation.client_pin && (
+                <PinBlock pin={reservation.client_pin} />
+              )}
+
               {shouldShowWhatsapp(reservation.status) && (
                 <a
                   href={whatsappHref(reservation)}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex w-full items-center justify-center rounded-2xl bg-green-600 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-green-700"
+                  className="flex w-full items-center justify-center rounded-2xl border border-green-200 bg-green-50 py-4 text-center text-sm font-semibold text-green-700 transition hover:bg-green-100"
                 >
-                  Coordinar cita con el local
+                  Escribir por WhatsApp
                 </a>
-              )}
-
-              {shouldShowPin(reservation.status) && reservation.client_pin && (
-                <div className="w-full rounded-2xl border border-pink-100 bg-[linear-gradient(135deg,#fff7fb,#ffffff)] px-5 py-4 text-center shadow-sm md:w-auto md:min-w-[230px]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
-                    Codigo para el local
-                  </p>
-                  <p className="mt-2 text-3xl font-bold tracking-[0.24em] text-[var(--ink)]">
-                    {reservation.client_pin}
-                  </p>
-                  <p className="mt-2 text-xs font-medium leading-5 text-[var(--muted)]">
-                    Muestralo en tienda. Solo el local puede validarlo.
-                  </p>
-                </div>
               )}
             </div>
           )}
@@ -568,47 +732,86 @@ function ReservationCard({
   );
 }
 
-function InfoPill({ label, value }: { label: string; value: string }) {
+function DressImage({
+  image,
+  dressName,
+  priority,
+  className,
+  sizes,
+}: {
+  image?: string | null;
+  dressName: string;
+  priority: boolean;
+  className: string;
+  sizes: string;
+}) {
   return (
-    <div className="rounded-2xl bg-pink-50 px-4 py-3">
-      <p className="text-xs font-semibold text-[var(--muted)]">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-[var(--ink)]">{value}</p>
+    <div className={`relative overflow-hidden bg-pink-50 ${className}`}>
+      {image ? (
+        <Image
+          src={image}
+          alt={dressName}
+          fill
+          priority={priority}
+          sizes={sizes}
+          className="object-cover"
+        />
+      ) : (
+        <div className="grid h-full place-items-center text-lg font-semibold tracking-[0.32em] text-[var(--primary)]">
+          DREVA
+        </div>
+      )}
     </div>
   );
 }
 
-function Timeline({ status }: { status: ReservationStatus }) {
+function PinBlock({ pin }: { pin: string }) {
   return (
-    <ol className="mt-6 space-y-3">
-      {timelineItems(status).map((item) => (
-        <li key={item.label} className="flex items-start gap-3">
+    <div className="w-full max-w-sm rounded-2xl border-2 border-pink-200 bg-[linear-gradient(135deg,#fff7fb,#ffffff)] px-6 py-5 text-center shadow-[0_8px_28px_rgba(255,92,168,0.10)]">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[var(--primary)]">
+        Tu PIN
+      </p>
+      <p className="mt-2 font-mono text-4xl font-bold tracking-[0.28em] text-[var(--ink)] sm:text-5xl">
+        {pin}
+      </p>
+      <p className="mt-2 text-xs font-medium leading-5 text-[var(--muted)]">
+        Muestralo en el local.
+      </p>
+    </div>
+  );
+}
+
+function HistoryReservationCard({ reservation }: { reservation: Reservation }) {
+  const dressName = reservation.vestidos?.nombre ?? "Vestido DREVA";
+  const localName = reservation.locales?.nombre ?? "Confirmando local";
+
+  return (
+    <article className="grid grid-cols-[88px_minmax(0,1fr)] gap-4 rounded-2xl border border-zinc-200/80 bg-zinc-50/80 p-3 opacity-90">
+      <DressImage
+        image={reservation.vestidos?.imagen}
+        dressName={dressName}
+        priority={false}
+        className="h-[100px] rounded-xl"
+        sizes="88px"
+      />
+      <div className="min-w-0 py-1.5 pr-2">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-semibold text-[var(--ink)]">
+              {dressName}
+            </h3>
+            <p className="mt-1 truncate text-xs text-[var(--muted)]">{localName}</p>
+          </div>
           <span
-            className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border text-[10px] font-bold ${
-              item.state === "done"
-                ? "border-[var(--primary)] bg-[var(--primary)] text-white"
-                : item.state === "current"
-                  ? "border-amber-200 bg-amber-50 text-amber-700"
-                  : item.state === "closed"
-                    ? "border-zinc-200 bg-zinc-100 text-zinc-400"
-                    : "border-pink-100 bg-white text-zinc-300"
-            }`}
+            className={`w-fit rounded-full border px-2.5 py-1 text-[11px] font-semibold ${STATUS_STYLES[reservation.status]}`}
           >
-            {item.state === "done" ? "OK" : item.state === "current" ? "..." : ""}
+            {STATUS_LABELS[reservation.status]}
           </span>
-          <span
-            className={`min-w-0 text-sm ${
-              item.state === "waiting" || item.state === "closed"
-                ? "text-zinc-400"
-                : "text-[var(--ink)]"
-            }`}
-          >
-            <span className="block font-semibold">{item.label}</span>
-            <span className="mt-0.5 block font-medium leading-5 text-[var(--muted)]">
-              {item.description}
-            </span>
-          </span>
-        </li>
-      ))}
-    </ol>
+        </div>
+        <p className="mt-3 text-xs font-semibold text-[var(--muted)]">
+          {formatDate(reservation.event_date)}
+        </p>
+      </div>
+    </article>
   );
 }

@@ -31,7 +31,7 @@ export function FiltersBar({
     <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">
     Categoría
     </p>
-      {/* CATEGORÍAS */}
+      {/* CATEGORIAS */}
       <div className="flex gap-3 overflow-x-auto">
         {categories.map((cat) => (
           <button

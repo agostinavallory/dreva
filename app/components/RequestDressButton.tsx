@@ -24,7 +24,7 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
   const { user, loading: authLoading } = useAuth();
   const [open, setOpen] = useState(false);
   const [eventDate, setEventDate] = useState(todayIsoDate());
-  const [clientPin, setClientPin] = useState<string | null>(null);
+  const [requestSent, setRequestSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -33,7 +33,7 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
     setOpen(false);
     setShowLegal(false);
     setTermsAccepted(false);
-    setClientPin(null);
+    setRequestSent(false);
     setSubmitting(false);
   }
 
@@ -136,7 +136,7 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
       eventDate,
       status: "pending",
     });
-    setClientPin(pin);
+    setRequestSent(true);
     setSubmitting(false);
   }
 
@@ -152,7 +152,7 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/45 px-4 py-6">
           <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
-            {!showLegal && !clientPin && (
+            {!showLegal && !requestSent && (
               <div className="p-6">
                 <h2 className="text-2xl font-semibold text-[var(--ink)]">
                   Solicitar vestido
@@ -188,7 +188,7 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
               </div>
             )}
 
-            {showLegal && !clientPin && (
+            {showLegal && !requestSent && (
               <div className="bg-[linear-gradient(180deg,#fff7fb,#ffffff)] p-5 sm:p-6">
                 <div className="rounded-3xl border border-pink-100 bg-white/85 p-5 shadow-[0_18px_55px_rgba(255,92,168,0.16)]">
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--primary)]">
@@ -264,21 +264,19 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
               </div>
             )}
 
-            {clientPin && (
+            {requestSent && (
               <div className="p-6">
                 <h2 className="text-2xl font-semibold text-[var(--ink)]">
                   Solicitud enviada
                 </h2>
                 <div className="mt-5 rounded-2xl border border-pink-100 bg-pink-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
-                    Codigo de confirmacion para el local
-                  </p>
-                  <p className="mt-2 text-3xl font-bold tracking-[0.18em] text-[var(--ink)]">
-                    {clientPin}
+                    Revision del local
                   </p>
                   <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                    Guarda este codigo. El local lo valida en tienda para
-                    confirmar el alquiler de {dressName}.
+                    Tu solicitud para {dressName} fue enviada. Cuando el local
+                    acepte la disponibilidad, veras tu codigo de confirmacion
+                    en Mis Reservas.
                   </p>
                 </div>
 

@@ -52,6 +52,22 @@ export function HomeClient({
       matchesColor
     );
   });
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    Boolean(selectedCategory) ||
+    Boolean(selectedSize) ||
+    Boolean(selectedColor);
+  const resultLabel =
+    filtered.length === 1
+      ? "1 vestido encontrado"
+      : `${filtered.length} vestidos encontrados`;
+
+  function clearFilters() {
+    setSearch("");
+    setSelectedCategory(null);
+    setSelectedSize(null);
+    setSelectedColor(null);
+  }
 
   return (
     <>
@@ -69,18 +85,50 @@ export function HomeClient({
         setSelectedColor={setSelectedColor}
       />
 
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-sm font-semibold text-[var(--ink)]">
+          {resultLabel}
+        </p>
+
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="w-fit rounded-full border border-pink-200 bg-white px-4 py-2 text-sm font-semibold text-[var(--primary)] transition hover:border-[var(--primary)] hover:text-[var(--ink)]"
+          >
+            Limpiar filtros
+          </button>
+        )}
+      </div>
+
       {filtered.length === 0 ? (
         <div className="mt-10 rounded-3xl border border-pink-100 bg-white px-6 py-10 text-center shadow-sm">
           <h2 className="text-xl font-semibold text-[var(--ink)]">
             No encontramos vestidos con esos filtros
           </h2>
           <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
-            Prueba cambiar la búsqueda, la talla, el color o la categoría. La
-            disponibilidad por fecha se mantiene sin cambios en esta fase.
+            Prueba ajustar la búsqueda, la talla, el color o la categoría para
+            ver más opciones disponibles.
           </p>
+          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="rounded-2xl bg-black px-5 py-3 text-sm font-semibold text-white transition hover:opacity-80"
+            >
+              Limpiar filtros
+            </button>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="rounded-2xl border border-pink-200 px-5 py-3 text-sm font-semibold text-[var(--primary)] transition hover:border-[var(--primary)]"
+            >
+              Ver todos los vestidos
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-6 mt-10 md:grid-cols-3 xl:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-4">
           {filtered.map((dress) => (
             <DressCard key={dress.id} dress={dress} />
           ))}
