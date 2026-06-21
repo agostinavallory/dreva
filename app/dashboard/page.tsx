@@ -5,6 +5,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
+import DashboardNav from "@/app/components/DashboardNav";
 
 type ReservationStatus =
   | "pending"
@@ -87,6 +88,7 @@ export default function DashboardPage() {
   const userId = user?.id;
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dressCount, setDressCount] = useState(0);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [appointmentDrafts, setAppointmentDrafts] = useState<Record<string, string>>({});
   const [pinDrafts, setPinDrafts] = useState<Record<string, string>>({});
@@ -189,6 +191,12 @@ export default function DashboardPage() {
 
       setLoading(true);
       const data = await fetchReservations(userId);
+      const { count } = await supabase
+  .from("vestidos")
+  .select("*", { count: "exact", head: true })
+  .eq("owner_id", userId);
+
+setDressCount(count ?? 0);
 
       if (cancelled) {
         return;
@@ -281,6 +289,7 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[var(--background)] px-4 py-6 text-[var(--foreground)] sm:px-8">
       <section className="mx-auto max-w-5xl">
+        <DashboardNav />
         <div className="mb-6">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--primary)]">
             Panel del local
@@ -293,7 +302,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
           <Metric
             label="Pendientes"
             value={stats.pending}
@@ -314,6 +323,11 @@ export default function DashboardPage() {
             value={stats.completed}
             tone="border-zinc-200 bg-white"
           />
+          <Metric
+  label="Vestidos"
+  value={dressCount}
+  tone="border-pink-100 bg-pink-50"
+/>
         </div>
 
         {reservations.length === 0 ? (

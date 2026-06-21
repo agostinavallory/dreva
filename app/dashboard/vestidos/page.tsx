@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { DeleteButton } from "@/app/components/DeleteButton";
+import DashboardNav from "@/app/components/DashboardNav";
 
 export default async function VestidosDashboardPage() {
   const ownerId = "7b27d1c5-2173-4b42-b345-1af6f549d4fc";
@@ -17,6 +18,8 @@ export default async function VestidosDashboardPage() {
 
   return (
     <main className="p-6 max-w-6xl mx-auto">
+
+<DashboardNav />
 
       {/* HEADER */}
       <div className="flex items-center justify-between mb-6">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import DashboardNav from "@/app/components/DashboardNav";
 
 type Local = {
   id: string;
@@ -105,6 +106,8 @@ export default function ConfiguracionPage() {
 
   return (
     <main className="max-w-3xl mx-auto p-6">
+
+<DashboardNav />
 
       <h1 className="text-2xl font-bold mb-6">
         Configuración del Local
