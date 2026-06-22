@@ -100,6 +100,14 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
       .in("status", BLOCKING_STATUSES)
       .limit(1);
 
+const { data: manualBlocks, error: blocksError } = await supabase
+  .from("dress_blocks")
+  .select("id")
+  .eq("dress_id", dressId)
+  .lte("start_date", eventDate)
+  .gte("end_date", eventDate)
+  .limit(1);
+
     if (blockedError) {
       console.error("[DREVA reservations] stock check error", blockedError);
       alert("No pudimos validar disponibilidad. Intenta de nuevo.");
@@ -107,11 +115,24 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
       return;
     }
 
+if (blocksError) {
+  console.error("[DREVA reservations] manual block check error", blocksError);
+  alert("No pudimos validar disponibilidad. Intenta de nuevo.");
+  setSubmitting(false);
+  return;
+}
+
     if (blockedReservations && blockedReservations.length > 0) {
       alert("Este vestido ya esta bloqueado para esa fecha.");
       setSubmitting(false);
       return;
     }
+
+if (manualBlocks && manualBlocks.length > 0) {
+  alert("Este vestido tiene un bloqueo manual para la fecha seleccionada.");
+  setSubmitting(false);
+  return;
+}
 
     const pin = generateClientPin();
     const { error } = await supabase.from("reservations").insert({

@@ -75,6 +75,13 @@ export default async function VestidosDashboardPage() {
                   Editar
                 </Link>
 
+<Link
+  href={`/dashboard/vestidos/${v.id}/disponibilidad`}
+  className="text-sm text-purple-600"
+>
+  Disponibilidad
+</Link>
+
                 <DeleteButton id={v.id} />
               </div>
             </div>
