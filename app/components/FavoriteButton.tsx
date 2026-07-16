@@ -176,12 +176,24 @@ export function FavoriteButton({ dressId }: Props) {
 
   return (
     <button
+      type="button"
       onClick={toggleFavorite}
       disabled={saving}
       aria-pressed={liked}
-      className="bg-white/90 backdrop-blur rounded-full p-2 shadow-sm hover:scale-110 transition disabled:cursor-not-allowed disabled:opacity-60"
+      aria-label={liked ? "Quitar de favoritos" : "Agregar a favoritos"}
+      className={`flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-[0_8px_24px_rgba(31,25,32,0.12)] backdrop-blur transition hover:scale-105 hover:text-[#ff2f78] disabled:cursor-not-allowed disabled:opacity-60 ${
+        liked ? "text-[#ff2f78]" : "text-[#4a454c]"
+      }`}
     >
-      {liked ? "\u2764\uFE0F" : "\uD83E\uDD0D"}
+      <svg width="24" height="24" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"}>
+        <path
+          d="M20.4 5.8a5.1 5.1 0 0 0-7.2 0L12 7l-1.2-1.2a5.1 5.1 0 1 0-7.2 7.2L12 21l8.4-8a5.1 5.1 0 0 0 0-7.2Z"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.8"
+        />
+      </svg>
     </button>
   );
 }

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
 import DashboardNav from "@/app/components/DashboardNav";
+import Link from "next/link";
 
 type ReservationStatus =
   | "pending"
@@ -55,7 +56,8 @@ const STATUS_STYLES: Record<ReservationStatus, string> = {
 
 const NEXT_STEPS: Record<ReservationStatus, string> = {
   pending: "Revisa la disponibilidad del vestido para aceptar o rechazar la solicitud.",
-  accepted: "Espera a que la clienta te contacte por WhatsApp y registra la fecha acordada en DREVA.",
+  accepted:
+    "Disponibilidad confirmada.\nAhora espera que la clienta se comunique contigo por WhatsApp para acordar una fecha.\nCuando la tengan definida, registra la fecha para continuar.",
   appointment_scheduled: "Espera a la clienta en tienda y valida su codigo de 4 digitos.",
   confirmed: "Cuando termine el proceso, marca la reserva como finalizada.",
   completed: "Reserva finalizada. No quedan acciones pendientes.",
@@ -89,29 +91,46 @@ export default function DashboardPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [dressCount, setDressCount] = useState(0);
+  const [blockedDressCount, setBlockedDressCount] = useState(0);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [appointmentDrafts, setAppointmentDrafts] = useState<Record<string, string>>({});
   const [pinDrafts, setPinDrafts] = useState<Record<string, string>>({});
 
-  const stats = useMemo(() => {
-    return reservations.reduce(
-      (acc, reservation) => {
-        acc.total += 1;
-        acc[reservation.status] += 1;
-        return acc;
-      },
-      {
-        total: 0,
-        pending: 0,
-        accepted: 0,
-        appointment_scheduled: 0,
-        confirmed: 0,
-        completed: 0,
-        cancelled: 0,
-        expired: 0,
-      } as Record<ReservationStatus | "total", number>
-    );
-  }, [reservations]);
+const stats = useMemo(() => {
+  const activeStatuses: ReservationStatus[] = [
+    "pending",
+    "accepted",
+    "appointment_scheduled",
+    "confirmed",
+  ];
+
+  return reservations.reduce(
+    (acc, reservation) => {
+      acc.total += 1;
+
+      if (activeStatuses.includes(reservation.status)) {
+        acc.active += 1;
+      }
+
+      acc[reservation.status] += 1;
+
+      return acc;
+    },
+    {
+      total: 0,
+      active: 0,
+      pending: 0,
+      accepted: 0,
+      appointment_scheduled: 0,
+      confirmed: 0,
+      completed: 0,
+      cancelled: 0,
+      expired: 0,
+    } as Record<ReservationStatus | "total" | "active", number>
+  );
+}, [reservations]);
+
+
 
   const groupedReservations = useMemo(() => {
     return {
@@ -128,6 +147,21 @@ export default function DashboardPage() {
       ),
     };
   }, [reservations]);
+
+  const nextAppointment = useMemo(() => {
+  const upcoming = reservations
+  .filter(r =>
+  r.status === "appointment_scheduled" &&
+  r.appointment_date !== null
+)
+    .sort(
+      (a, b) =>
+        new Date(a.appointment_date!).getTime() -
+        new Date(b.appointment_date!).getTime()
+    );
+
+  return upcoming[0] ?? null;
+}, [reservations]);
 
   const fetchReservations = useCallback(async (ownerId: string) => {
     const { data, error } = await supabase
@@ -197,6 +231,25 @@ export default function DashboardPage() {
   .eq("owner_id", userId);
 
 setDressCount(count ?? 0);
+
+const { data: dressIds } = await supabase
+  .from("vestidos")
+  .select("id")
+  .eq("owner_id", userId);
+
+const ids = (dressIds || []).map((d) => d.id);
+
+if (ids.length > 0) {
+  const { count: blockedCount } = await supabase
+    .from("dress_blocks")
+    .select("*", {
+      count: "exact",
+      head: true,
+    })
+    .in("dress_id", ids);
+
+  setBlockedDressCount(blockedCount ?? 0);
+}
 
       if (cancelled) {
         return;
@@ -302,39 +355,73 @@ setDressCount(count ?? 0);
           </p>
         </div>
 
-        <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <Metric
-            label="Pendientes"
-            value={stats.pending}
-            tone="border-amber-100 bg-amber-50"
-          />
-          <Metric
-            label="Citas programadas"
-            value={stats.appointment_scheduled}
-            tone="border-violet-100 bg-violet-50"
-          />
-          <Metric
-            label="Confirmadas"
-            value={stats.confirmed}
-            tone="border-emerald-100 bg-emerald-50"
-          />
-          <Metric
-            label="Completadas"
-            value={stats.completed}
-            tone="border-zinc-200 bg-white"
-          />
-          <Metric
-  label="Vestidos"
-  value={dressCount}
-  tone="border-pink-100 bg-pink-50"
-/>
-        </div>
+     <div className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+
+  <Metric
+    label="Vestidos publicados"
+    value={dressCount}
+    tone="border-pink-100 bg-pink-50"
+  />
+
+  <Metric
+    label="Solicitudes pendientes"
+    value={stats.pending}
+    tone="border-amber-100 bg-amber-50"
+  />
+
+  <Metric
+    label="Reservas activas"
+    value={stats.active}
+    tone="border-emerald-100 bg-emerald-50"
+  />
+
+  <Metric
+    label="Bloqueos activos"
+    value={blockedDressCount}
+    tone="border-violet-100 bg-violet-50"
+  />
+
+</div>
+
+   {nextAppointment && (
+  <div className="mb-6 rounded-2xl border border-emerald-100 bg-emerald-50 p-5 shadow-sm">
+    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+      Próxima cita
+    </p>
+
+    <div className="mt-3 space-y-1">
+      <p className="text-lg font-semibold text-emerald-900">
+        {nextAppointment.vestidos?.nombre ?? "Vestido sin nombre"}
+      </p>
+
+      <p className="text-sm text-emerald-800">
+        📅 {nextAppointment.appointment_date
+          ? new Date(nextAppointment.appointment_date + "T00:00:00").toLocaleDateString("es-PY")
+          : "Sin fecha"}
+      </p>
+
+      <p className="text-xs text-emerald-700">
+        Estado: Cita programada
+      </p>
+<Link
+  href={`/dashboard/reservas/${nextAppointment.id}`}
+  className="mt-4 inline-block rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+>
+  Ver reserva
+</Link>
+
+    </div>
+  </div>
+)}
 
         {reservations.length === 0 ? (
           <div className="rounded-2xl border border-pink-100 bg-white p-6 text-sm text-[var(--muted)] shadow-sm">
             No hay solicitudes todavia.
           </div>
         ) : (
+
+       
+
           <div className="space-y-8">
             <ReservationSection
               title="Pendientes"
@@ -573,26 +660,31 @@ function ReservationCard({
                   {STATUS_LABELS[reservation.status]}
                 </span>
               </div>
-              <p className="mt-1 text-xs font-semibold text-[var(--primary)]">
-                Ref. DREVA RES-{reservation.id}
-              </p>
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
             <Info label="Evento" value={formatDate(reservation.event_date)} />
-            <Info label="Cita registrada" value={formatDate(reservation.appointment_date)} />
-            <Info label="Expira" value={formatDate(reservation.expires_at, true)} />
+            <Info
+              label="Fecha de la cita"
+              value={
+                reservation.appointment_date
+                  ? formatDate(reservation.appointment_date)
+                  : "Aún no registrada"
+              }
+            />
           </div>
 
-          <div className="mt-4 rounded-2xl border border-pink-100 bg-[#fffafc] px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--primary)]">
-              Proximo paso
-            </p>
-            <p className="mt-1 text-sm font-medium leading-6 text-[var(--ink)]">
-              {NEXT_STEPS[reservation.status]}
-            </p>
-          </div>
+          {reservation.status !== "accepted" && (
+            <div className="mt-4 rounded-2xl border border-pink-100 bg-[#fffafc] px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--primary)]">
+                Qué sigue
+              </p>
+              <p className="mt-1 text-sm font-medium leading-6 text-[var(--ink)]">
+                {NEXT_STEPS[reservation.status]}
+              </p>
+            </div>
+          )}
 
           <ReservationActions
             reservation={reservation}
@@ -633,6 +725,8 @@ function ReservationActions({
   ) => Promise<void>;
   onValidatePin: (id: string) => Promise<void>;
 }) {
+  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
+
   if (reservation.status === "pending") {
     return (
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
@@ -656,20 +750,48 @@ function ReservationActions({
 
   if (reservation.status === "accepted") {
     return (
-      <div className="mt-4 space-y-3">
-        <p className="rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium leading-6 text-green-800">
-          Esperando contacto de la clienta por WhatsApp.
+      <div className="mt-4 rounded-2xl border border-pink-100 bg-[#fffafc] px-4 py-4 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--primary)]">
+          Qué sigue
         </p>
-        <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+        <div className="mt-2 space-y-1 text-sm font-medium leading-6 text-[var(--ink)]">
+          {NEXT_STEPS.accepted.split("\n").map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
+        <div className="mt-3 space-y-1 text-xs leading-5 text-[var(--muted)]">
+          <p>⏳ La clienta tiene hasta el {formatDate(reservation.expires_at, true)} para comunicarse.</p>
+          <p>
+            Si no lo hace antes de esa fecha, la solicitud se cancelará
+            automáticamente.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowAppointmentForm(true)}
+          className="mt-4 w-full rounded-2xl bg-black px-4 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:w-auto"
+        >
+          Registrar fecha acordada
+        </button>
+        <div
+          className={`grid gap-2 overflow-hidden transition-all duration-300 ease-out sm:grid-cols-[1fr_auto] ${
+            showAppointmentForm
+              ? "mt-3 max-h-32 opacity-100"
+              : "max-h-0 opacity-0"
+          }`}
+          aria-hidden={!showAppointmentForm}
+        >
           <input
             type="date"
             value={appointmentDraft}
             onChange={(event) => setAppointmentDraft(event.target.value)}
+            tabIndex={showAppointmentForm ? undefined : -1}
             className="rounded-2xl border border-pink-200 px-4 py-3 text-sm outline-none focus:border-black"
           />
           <button
             onClick={() => onTransition(reservation.id, "schedule", appointmentDraft)}
             disabled={busy || !appointmentDraft}
+            tabIndex={showAppointmentForm ? undefined : -1}
             className="rounded-2xl bg-black px-4 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             Registrar cita en DREVA

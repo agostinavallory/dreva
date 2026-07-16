@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
         hostname: 'i.pinimg.com',
         pathname: '/**',
       },
+      // TEMPORAL (MVP):
+      // Se permite media.istockphoto.com únicamente para imágenes de prueba.
+      // En la versión final todas las imágenes deberán provenir de Supabase Storage
+      // y este dominio deberá eliminarse.
+      {
+        protocol: 'https',
+        hostname: 'media.istockphoto.com',
+        pathname: '/**',
+      },
     ],
   },
 };

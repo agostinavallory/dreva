@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf7f5;
+  --background: #fbf8fa;
+  --foreground: #2b2b2b;
+  --ink: #252329;
+  --muted: #77727a;
   --primary: #c08497;
+  --primary-dark: #9f6277;
   --dark: #2b2b2b;
 }
 body {
@@ -21,4 +25,3 @@ input {
   background: var(--primary);
   color: white;
 }
-

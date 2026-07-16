@@ -1,64 +1,56 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import type { Dress } from '@/app/page';
+import Image from "next/image";
+import Link from "next/link";
+import type { Dress } from "@/app/page";
 import { FavoriteButton } from "./FavoriteButton";
 
-function formatPrice(price: Dress['precio']) {
+function formatPrice(price: Dress["precio"]) {
   const numericPrice =
-    typeof price === 'string' ? Number(price.replace(/[^\d.]/g, '')) : price;
+    typeof price === "string" ? Number(price.replace(/[^\d.]/g, "")) : price;
 
   if (!numericPrice || Number.isNaN(numericPrice)) {
-    return 'Consultar precio';
+    return "Consultar precio";
   }
 
-  return `Gs. ${new Intl.NumberFormat('es-PY').format(numericPrice)}`;
+  return `Gs. ${new Intl.NumberFormat("es-PY").format(numericPrice)}`;
 }
 
 export function DressCard({ dress }: { dress: Dress }) {
   const href = `/detalle/${dress.id}`;
 
   return (
-   <article className="group cursor-pointer transition duration-300 hover:-translate-y-1">
+    <article className="group relative overflow-hidden rounded-[1.2rem] border border-[#eee6ea] bg-white shadow-[0_12px_34px_rgba(28,23,30,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(255,47,120,0.12)]">
       <Link href={href} className="block">
-        
-        {/* IMAGEN */}
-        <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-gray-100 shadow-sm transition duration-300 group-hover:shadow-xl group-hover:shadow-pink-100">
+        <div className="relative aspect-[4/4.65] overflow-hidden bg-[#f4eef1]">
           {dress.imagen ? (
             <Image
               src={dress.imagen}
-              alt={dress.nombre ?? 'Vestido'}
+              alt={dress.nombre ?? "Vestido"}
               fill
-              className="object-cover transition duration-700 ease-out group-hover:scale-110"
+              sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
+              className="object-cover transition duration-700 ease-out group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-gray-400">
+            <div className="flex h-full items-center justify-center text-sm font-medium text-[#9a949b]">
               Sin imagen
             </div>
           )}
-
-          {/* BOTON FAVORITO */}
-          <div className="absolute top-3 right-3">
-           <FavoriteButton dressId={dress.id} />
-          </div>
         </div>
 
-        {/* INFO */}
-        <div className="mt-3 px-1">
-          <h3 className="text-sm font-medium text-[var(--ink)]">
-            {dress.nombre ?? 'Vestido'}
+        <div className="space-y-1 px-4 py-4">
+          <h3 className="truncate text-base font-semibold text-[#2b2830]">
+            {dress.nombre ?? "Vestido"}
           </h3>
-
-          <p className="text-sm font-semibold text-[var(--primary)] mt-1">
+          <p className="truncate text-sm font-medium text-[#5f5961]">
+            {dress.local_nombre ?? "Local DREVA"}
+          </p>
+          <p className="pt-1 text-base font-bold text-[#ff2f78]">
             {formatPrice(dress.precio)}
           </p>
-
-          <p className="text-xs text-gray-400 mt-1">
-            {dress.categoria} - {dress.color}
-          </p>
         </div>
-
       </Link>
+      <div className="absolute right-3 top-3">
+        <FavoriteButton dressId={dress.id} />
+      </div>
     </article>
   );
 }
-
