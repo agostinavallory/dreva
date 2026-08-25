@@ -5,6 +5,8 @@ type Props = {
   dressName?: string | null;
 
   onAction?: () => void;
+  actionDisabled?: boolean;
+  actionLabel?: string;
 };
 
 const NEXT_STEP: Record<
@@ -12,7 +14,7 @@ const NEXT_STEP: Record<
   {
     title: string;
     description: string;
-    button: string;
+    button?: string;
   }
 > = {
   pending: {
@@ -26,7 +28,7 @@ const NEXT_STEP: Record<
     title: "Esperando contacto de la clienta",
     description:
       "Ya aceptaste la solicitud. Ahora la clienta debe escribirte por WhatsApp para coordinar la cita.",
-    button: "Registrar cita",
+    button: "Agendar cita",
   },
 
   appointment_scheduled: {
@@ -47,7 +49,6 @@ const NEXT_STEP: Record<
     title: "Reserva finalizada",
     description:
       "Este proceso ya terminó correctamente. Puedes ver el resumen si lo necesitas.",
-    button: "Ver resumen",
   },
 };
 
@@ -68,6 +69,8 @@ export default function ReservationNextStep({
   appointmentDate,
   dressName,
   onAction,
+  actionDisabled = false,
+  actionLabel,
 }: Props) {
   const step = NEXT_STEP[status];
 const formattedEventDate = formatDate(eventDate);
@@ -115,12 +118,15 @@ const formattedAppointmentDate = formatDate(appointmentDate);
 
 </div>
 
-      <button
-      onClick={onAction}
-        className="mt-6 rounded-xl bg-black px-5 py-3 text-white font-semibold hover:opacity-90"
-      >
-        {step.button}
-      </button>
+      {step.button && (
+        <button
+          onClick={onAction}
+          disabled={actionDisabled}
+          className="mt-6 rounded-xl bg-black px-5 py-3 text-white font-semibold hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {actionLabel ?? step.button}
+        </button>
+      )}
 
     </div>
   );

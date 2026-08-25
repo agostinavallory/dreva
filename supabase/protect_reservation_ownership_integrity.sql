@@ -1,97 +1,8 @@
--- DREVA reservations state machine
--- Run this migration in Supabase SQL editor after reviewing existing policies.
-
-alter table public.reservations
-  add column if not exists status text default 'pending',
-  add column if not exists client_pin text,
-  add column if not exists appointment_date timestamptz,
-  add column if not exists accepted_at timestamptz,
-  add column if not exists expires_at timestamptz,
-  add column if not exists completed_at timestamptz,
-  add column if not exists cancelled_at timestamptz;
-
-update public.reservations
-set status = 'cancelled'
-where status = 'rejected';
-
-update public.reservations
-set status = 'pending'
-where status is null
-   or status not in (
-    'pending',
-    'accepted',
-    'appointment_scheduled',
-    'confirmed',
-    'completed',
-    'cancelled',
-    'expired'
-  );
-
-update public.reservations
-set client_pin = lpad(floor(random() * 10000)::int::text, 4, '0')
-where client_pin is null;
-
-alter table public.reservations
-  alter column appointment_date type timestamptz
-  using appointment_date::timestamptz;
-
-alter table public.reservations
-  alter column status set default 'pending',
-  alter column status set not null,
-  alter column client_pin set default lpad(floor(random() * 10000)::int::text, 4, '0');
-
-do $$
-declare
-  v_existing_status_check text;
-begin
-  select pg_get_constraintdef(oid)
-  into v_existing_status_check
-  from pg_constraint
-  where conname = 'reservations_status_check'
-    and conrelid = 'public.reservations'::regclass;
-
-  raise notice 'Existing reservations_status_check: %',
-    coalesce(v_existing_status_check, 'not found');
-
-  alter table public.reservations
-    drop constraint if exists reservations_status_check;
-
-  alter table public.reservations
-    add constraint reservations_status_check
-    check (
-      status in (
-        'pending',
-        'accepted',
-        'appointment_scheduled',
-        'confirmed',
-        'completed',
-        'cancelled',
-        'expired'
-      )
-    );
-
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'reservations_client_pin_check'
-      and conrelid = 'public.reservations'::regclass
-  ) then
-    alter table public.reservations
-      add constraint reservations_client_pin_check
-      check (client_pin ~ '^[0-9]{4}$');
-  end if;
-end $$;
-
-create index if not exists reservations_owner_status_created_at_idx
-  on public.reservations (owner_id, status, created_at desc);
-
-create index if not exists reservations_dress_event_block_idx
-  on public.reservations (dress_id, event_date, status)
-  where status in ('accepted', 'appointment_scheduled', 'confirmed');
-
-create unique index if not exists reservations_one_active_block_per_dress_date
-  on public.reservations (dress_id, event_date)
-  where status in ('accepted', 'appointment_scheduled', 'confirmed');
+-- DREVA reservation ownership integrity hardening
+-- Run this manually in Supabase SQL Editor.
+--
+-- This migration keeps the existing reservation flow, but moves ownership and
+-- acceptance integrity checks into RLS/RPCs.
 
 create or replace function public.reservation_dress_owner_matches(
   p_dress_id bigint,
@@ -111,21 +22,12 @@ as $$
   );
 $$;
 
-alter table public.reservations enable row level security;
+grant execute on function public.reservation_dress_owner_matches(bigint, uuid)
+to authenticated;
 
-drop policy if exists "Clients can read their own reservations" on public.reservations;
-create policy "Clients can read their own reservations"
-on public.reservations
-for select
-using (auth.uid() = user_id);
+drop policy if exists "Clients can create pending reservations"
+on public.reservations;
 
-drop policy if exists "Owners can read local reservations without pin" on public.reservations;
-create policy "Owners can read local reservations without pin"
-on public.reservations
-for select
-using (auth.uid() = owner_id);
-
-drop policy if exists "Clients can create pending reservations" on public.reservations;
 create policy "Clients can create pending reservations"
 on public.reservations
 for insert
@@ -139,14 +41,10 @@ with check (
   and public.reservation_dress_owner_matches(dress_id, owner_id)
 );
 
-drop policy if exists "Owners can operate their reservations" on public.reservations;
-
-revoke update on public.reservations from anon;
-revoke update on public.reservations from authenticated;
-
 drop function if exists public.transition_reservation(bigint, text, timestamptz);
 drop function if exists public.transition_reservation(uuid, text, timestamptz);
 drop function if exists public.transition_reservation(uuid, text, date);
+
 create or replace function public.transition_reservation(
   p_reservation_id uuid,
   p_action text,
@@ -291,6 +189,7 @@ $$;
 
 drop function if exists public.validate_reservation_pin(bigint, text);
 drop function if exists public.validate_reservation_pin(uuid, text);
+
 create or replace function public.validate_reservation_pin(
   p_reservation_id uuid,
   p_pin text
@@ -345,28 +244,8 @@ begin
 end;
 $$;
 
-grant execute on function public.transition_reservation(uuid, text, timestamptz) to authenticated;
-grant execute on function public.validate_reservation_pin(uuid, text) to authenticated;
-grant execute on function public.reservation_dress_owner_matches(bigint, uuid) to authenticated;
+grant execute on function public.transition_reservation(uuid, text, timestamptz)
+to authenticated;
 
-create or replace function public.expire_stale_reservations()
-returns integer
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_count integer;
-begin
-  update public.reservations
-  set status = 'expired'
-  where status = 'accepted'
-    and expires_at is not null
-    and expires_at < now();
-
-  get diagnostics v_count = row_count;
-  return v_count;
-end;
-$$;
-
-grant execute on function public.expire_stale_reservations() to authenticated;
+grant execute on function public.validate_reservation_pin(uuid, text)
+to authenticated;

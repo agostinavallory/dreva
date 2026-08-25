@@ -6,7 +6,8 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,41 +19,75 @@ export default function RegisterPage() {
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    if (!name.trim()) {
-      setErrorMessage("Ingresa tu nombre completo.");
+    const trimmedNombre = nombre.trim();
+    const trimmedApellido = apellido.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedNombre) {
+      setErrorMessage("Ingresa tu nombre.");
       return;
     }
 
-    if (!email.trim()) {
-      setErrorMessage("Ingresa un correo electrónico válido.");
+    if (!trimmedApellido) {
+      setErrorMessage("Ingresa tu apellido.");
+      return;
+    }
+
+    if (!trimmedEmail) {
+      setErrorMessage("Ingresa un correo electronico valido.");
       return;
     }
 
     if (password.length < 6) {
-      setErrorMessage("La contraseña debe tener al menos 6 caracteres.");
+      setErrorMessage("La contrasena debe tener al menos 6 caracteres.");
       return;
     }
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
+    const { data, error } = await supabase.auth.signUp({
+      email: trimmedEmail,
       password,
       options: {
         data: {
-          full_name: name,
+          full_name: `${trimmedNombre} ${trimmedApellido}`,
+          nombre: trimmedNombre,
+          apellido: trimmedApellido,
+          first_name: trimmedNombre,
+          last_name: trimmedApellido,
         },
       },
     });
 
-    setLoading(false);
-
     if (error) {
-      setErrorMessage("No pudimos crear tu cuenta. Revisa los datos e intenta de nuevo.");
+      setLoading(false);
+      setErrorMessage(
+        "No pudimos crear tu cuenta. Revisa los datos e intenta de nuevo.",
+      );
       return;
     }
 
-    setSuccessMessage("Cuenta creada correctamente. Ya puedes iniciar sesión.");
+    if (data.user && data.session) {
+      const { error: profileError } = await supabase.from("profiles").upsert(
+        {
+          user_id: data.user.id,
+          nombre: trimmedNombre,
+          apellido: trimmedApellido,
+        },
+        { onConflict: "user_id" },
+      );
+
+      if (profileError) {
+        setLoading(false);
+        setErrorMessage(
+          "La cuenta se creo, pero no pudimos guardar tu perfil. Intenta iniciar sesion.",
+        );
+        return;
+      }
+    }
+
+    setLoading(false);
+    setSuccessMessage("Cuenta creada correctamente. Ya puedes iniciar sesion.");
   }
 
   return (
@@ -68,22 +103,30 @@ export default function RegisterPage() {
           </h1>
 
           <p className="mt-3 text-sm text-[var(--muted)]">
-            Guarda vestidos favoritos y reserva de forma rápida.
+            Guarda vestidos favoritos y reserva de forma rapida.
           </p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">
           <input
             type="text"
-            placeholder="Nombre completo"
+            placeholder="Nombre"
             className="w-full rounded-2xl border border-pink-100 px-5 py-4 outline-none transition focus:border-[var(--primary)]"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+          />
+
+          <input
+            type="text"
+            placeholder="Apellido"
+            className="w-full rounded-2xl border border-pink-100 px-5 py-4 outline-none transition focus:border-[var(--primary)]"
+            value={apellido}
+            onChange={(e) => setApellido(e.target.value)}
           />
 
           <input
             type="email"
-            placeholder="Correo electrónico"
+            placeholder="Correo electronico"
             className="w-full rounded-2xl border border-pink-100 px-5 py-4 outline-none transition focus:border-[var(--primary)]"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -91,7 +134,7 @@ export default function RegisterPage() {
 
           <input
             type="password"
-            placeholder="Contraseña"
+            placeholder="Contrasena"
             className="w-full rounded-2xl border border-pink-100 px-5 py-4 outline-none transition focus:border-[var(--primary)]"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -119,9 +162,9 @@ export default function RegisterPage() {
         </form>
 
         <p className="mt-6 text-center text-sm text-[var(--muted)]">
-          ¿Ya tienes cuenta?{" "}
+          Ya tienes cuenta?{" "}
           <Link href="/login" className="font-semibold text-[var(--primary)]">
-            Inicia sesión
+            Inicia sesion
           </Link>
         </p>
       </div>
