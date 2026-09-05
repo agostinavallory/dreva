@@ -2,12 +2,14 @@ type Props = {
   onAccept: () => void;
   onReject: () => void;
   onClose: () => void;
+  busy?: boolean;
 };
 
 export default function ManageRequestPanel({
   onAccept,
   onReject,
   onClose,
+  busy = false,
 }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -26,21 +28,24 @@ export default function ManageRequestPanel({
 
           <button
             onClick={onAccept}
-            className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white"
+            disabled={busy}
+            className="w-full rounded-xl bg-emerald-600 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Aceptar solicitud
+            {busy ? "Procesando..." : "Aceptar solicitud"}
           </button>
 
           <button
             onClick={onReject}
-            className="w-full rounded-xl bg-rose-600 py-3 font-semibold text-white"
+            disabled={busy}
+            className="w-full rounded-xl bg-rose-600 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Rechazar solicitud
+            {busy ? "Procesando..." : "Rechazar solicitud"}
           </button>
 
           <button
             onClick={onClose}
-            className="w-full rounded-xl border py-3"
+            disabled={busy}
+            className="w-full rounded-xl border py-3 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Cancelar
           </button>

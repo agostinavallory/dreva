@@ -412,6 +412,12 @@ function DashboardHomeNav() {
       active: false,
     },
     {
+      href: "/dashboard/reservas",
+      label: "Reservas",
+      icon: <CalendarX2 />,
+      active: false,
+    },
+    {
       href: "/dashboard/configuracion",
       label: "Configuración",
       icon: <Settings />,

@@ -27,6 +27,13 @@ export default function DashboardNav() {
       </Link>
 
       <Link
+        href="/dashboard/reservas"
+        className={linkClass("/dashboard/reservas")}
+      >
+        Reservas
+      </Link>
+
+      <Link
         href="/dashboard/configuracion"
         className={linkClass("/dashboard/configuracion")}
       >

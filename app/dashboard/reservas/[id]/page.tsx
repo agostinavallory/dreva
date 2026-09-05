@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -12,12 +13,21 @@ type Reservation = {
   status: string;
   event_date: string | null;
   appointment_date: string | null;
+  created_at?: string | null;
+  accepted_at?: string | null;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
 
   vestidos: {
     nombre: string;
     imagen: string | null;
     precio: number | null;
   } | null;
+};
+
+type ClientProfile = {
+  nombre: string;
+  apellido: string;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -83,10 +93,14 @@ export default function ReservationPage() {
   const [pinError, setPinError] = useState<string | null>(null);
   const [validatingPin, setValidatingPin] = useState(false);
   const [completingReservation, setCompletingReservation] = useState(false);
+  const [managingRequest, setManagingRequest] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [clientName, setClientName] = useState<string | null>(null);
 
   const loadReservation = useCallback(async () => {
     setLoading(true);
+    setErrorMessage(null);
 
     const { data, error } = await supabase
       .from("reservations")
@@ -95,6 +109,10 @@ export default function ReservationPage() {
         status,
         event_date,
         appointment_date,
+        created_at,
+        accepted_at,
+        completed_at,
+        cancelled_at,
         vestidos (
           nombre,
           imagen,
@@ -106,6 +124,24 @@ export default function ReservationPage() {
 
     if (!error) {
       setReservation(data as unknown as Reservation);
+
+      const { data: profile, error: profileError } = await supabase.rpc(
+        "get_reservation_client_profile",
+        { p_reservation_id: id },
+      );
+
+      if (!profileError && profile && profile.length > 0) {
+        const client = profile[0] as ClientProfile;
+        const fullName = [client.nombre, client.apellido]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        setClientName(fullName || null);
+      } else {
+        setClientName(null);
+      }
+    } else {
+      setErrorMessage("No se pudo cargar la reserva.");
     }
 
     setLoading(false);
@@ -224,6 +260,39 @@ async function handleCompleteReservation() {
   setCompletingReservation(false);
 }
 
+async function handleManageAction(action: "accept" | "reject") {
+  if (!reservation) {
+    return;
+  }
+
+  setManagingRequest(true);
+  setSuccessMessage(null);
+  setErrorMessage(null);
+
+  const { error } = await supabase.rpc("transition_reservation", {
+    p_reservation_id: reservation.id,
+    p_action: action,
+    p_appointment_date: null,
+  });
+
+  if (error) {
+    console.error("[DREVA reservation detail] manage error", error);
+    setErrorMessage(error.message);
+    setManagingRequest(false);
+    return;
+  }
+
+  setShowManagePanel(false);
+  setManagingRequest(false);
+  setSuccessMessage(
+    action === "accept"
+      ? "Solicitud aceptada correctamente."
+      : "Solicitud rechazada.",
+  );
+  await loadReservation();
+}
+
+
 function handlePrimaryAction() {
   switch (reservation?.status) {
     case "pending":
@@ -254,11 +323,47 @@ function handlePrimaryAction() {
 }
 
 if (!reservation) {
-  return <main className="p-6">Reserva no encontrada.</main>;
+  return (
+    <main className="max-w-5xl mx-auto p-6">
+      <Link
+        href="/dashboard/reservas"
+        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-pink-600 hover:text-pink-700"
+      >
+        Volver a reservas
+      </Link>
+      <p className="text-sm text-gray-500">Reserva no encontrada.</p>
+    </main>
+  );
 }
+
+const timestamps: { label: string; value: string }[] = [
+  {
+    label: "Solicitada",
+    value: reservation.created_at ? formatDate(reservation.created_at) : null,
+  },
+  {
+    label: "Aceptada",
+    value: reservation.accepted_at ? formatDate(reservation.accepted_at) : null,
+  },
+  {
+    label: "Finalizada",
+    value: reservation.completed_at ? formatDate(reservation.completed_at) : null,
+  },
+  {
+    label: "Cancelada",
+    value: reservation.cancelled_at ? formatDate(reservation.cancelled_at) : null,
+  },
+].filter((item): item is { label: string; value: string } => item.value !== null);
 
 return (
   <main className="max-w-5xl mx-auto p-6">
+
+    <Link
+      href="/dashboard/reservas"
+      className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-pink-600 hover:text-pink-700"
+    >
+      Volver a reservas
+    </Link>
 
     <div className="mb-8">
 
@@ -314,6 +419,19 @@ return (
 
 </div>
 
+{clientName && (
+  <div className="mt-4 rounded-2xl border bg-white p-5 shadow-sm">
+    <p className="text-xs font-semibold uppercase text-gray-500">
+      Clienta
+    </p>
+
+    <p className="mt-2 text-lg font-semibold">
+      {clientName}
+    </p>
+  </div>
+)}
+
+
 <ReservationNextStep
   status={reservation.status}
   dressName={reservation.vestidos?.nombre}
@@ -330,13 +448,38 @@ return (
   </div>
 )}
 
+{errorMessage && (
+  <div className="mt-6 rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700">
+    {errorMessage}
+  </div>
+)}
+
+{timestamps.length > 0 && (
+  <div className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
+    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pink-600">
+      Detalles
+    </p>
+
+    <div className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-gray-700">
+      {timestamps.map((item) => (
+        <div key={item.label} className="flex items-center justify-between gap-4">
+          <span className="text-gray-500">{item.label}</span>
+          <span>{item.value}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 {showManagePanel && (
   <ManageRequestPanel
-    onAccept={() => alert("Aceptar solicitud")}
-    onReject={() => alert("Rechazar solicitud")}
+    onAccept={() => handleManageAction("accept")}
+    onReject={() => handleManageAction("reject")}
     onClose={() => setShowManagePanel(false)}
+    busy={managingRequest}
   />
 )}
+
 
 {showSchedulePanel && reservation.status === "accepted" && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
