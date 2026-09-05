@@ -1,25 +1,81 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { DeleteButton } from "@/app/components/DeleteButton";
 import DashboardNav from "@/app/components/DashboardNav";
+import { useAuth } from "@/app/providers/AuthProvider";
 
-export default async function VestidosDashboardPage() {
-  const ownerId = "7b27d1c5-2173-4b42-b345-1af6f549d4fc";
+type Vestido = {
+  id: number;
+  nombre: string;
+  categoria: string | null;
+  color: string | null;
+  precio: number | string | null;
+  imagen: string | null;
+};
 
-  const { data: vestidos, error } = await supabase
-    .from("vestidos")
-    .select("*")
-    .eq("owner_id", ownerId)
-    .order("nombre", { ascending: true });
+export default function VestidosDashboardPage() {
+  const { user, loading: authLoading } = useAuth();
+  const userId = user?.id;
 
-  if (error) {
-    console.error("Error cargando vestidos:", error);
+  const [vestidos, setVestidos] = useState<Vestido[] | null>(null);
+
+  const fetchVestidos = useCallback(async (ownerId: string) => {
+    const { data, error } = await supabase
+      .from("vestidos")
+      .select("*")
+      .eq("owner_id", ownerId)
+      .order("nombre", { ascending: true });
+
+    if (error) {
+      console.error("Error cargando vestidos:", error);
+    }
+
+    return (data || []) as Vestido[];
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadVestidos() {
+      if (authLoading) {
+        return;
+      }
+
+      if (!userId) {
+        setVestidos([]);
+        return;
+      }
+
+      const data = await fetchVestidos(userId);
+
+      if (!cancelled) {
+        setVestidos(data);
+      }
+    }
+
+    loadVestidos();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, fetchVestidos, userId]);
+
+  if (authLoading || vestidos === null) {
+    return (
+      <main className="p-6 max-w-6xl mx-auto">
+        <DashboardNav />
+        <p className="text-gray-500">Cargando vestidos...</p>
+      </main>
+    );
   }
 
   return (
     <main className="p-6 max-w-6xl mx-auto">
 
-<DashboardNav />
+      <DashboardNav />
 
       {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
@@ -40,7 +96,7 @@ export default async function VestidosDashboardPage() {
 
       {/* GRID */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {vestidos?.map((v) => (
+        {vestidos.map((v) => (
           <div
             key={v.id}
             className="border rounded-xl overflow-hidden shadow-sm"
@@ -75,12 +131,12 @@ export default async function VestidosDashboardPage() {
                   Editar
                 </Link>
 
-<Link
-  href={`/dashboard/vestidos/${v.id}/disponibilidad`}
-  className="text-sm text-purple-600"
->
-  Disponibilidad
-</Link>
+                <Link
+                  href={`/dashboard/vestidos/${v.id}/disponibilidad`}
+                  className="text-sm text-purple-600"
+                >
+                  Disponibilidad
+                </Link>
 
                 <DeleteButton id={v.id} />
               </div>
@@ -93,4 +149,3 @@ export default async function VestidosDashboardPage() {
     </main>
   );
 }
-

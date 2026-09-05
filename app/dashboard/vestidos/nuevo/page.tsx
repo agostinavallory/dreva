@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/providers/AuthProvider";
 
 const colorOptions = [
   "Negro",
@@ -26,6 +27,7 @@ const lengthOptions = ["Corto", "Midi", "Largo"];
 
 export default function NuevoVestidoPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
 
   const [form, setForm] = useState({
     nombre: "",
@@ -49,7 +51,14 @@ export default function NuevoVestidoPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const ownerId = "7b27d1c5-2173-4b42-b345-1af6f549d4fc";
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      alert("Debes iniciar sesión");
+      return;
+    }
 
     const { error } = await supabase.from("vestidos").insert([
       {
@@ -60,7 +69,7 @@ export default function NuevoVestidoPage() {
         color: form.color,
         talla: form.talla,
         largo: form.largo || null,
-        owner_id: ownerId,
+        owner_id: user.id,
       },
     ]);
 
