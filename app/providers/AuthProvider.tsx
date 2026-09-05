@@ -11,6 +11,7 @@ import {
 import type { Session, User } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabaseClient";
+import { AUTH_TOKEN_COOKIE } from "@/lib/supabaseConfig";
 
 type AuthContextValue = {
   session: Session | null;
@@ -20,6 +21,19 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+function syncAuthCookie(accessToken: string | null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (!accessToken) {
+    document.cookie = `${AUTH_TOKEN_COOKIE}=; Path=/; Max-Age=0`;
+    return;
+  }
+
+  document.cookie = `${AUTH_TOKEN_COOKIE}=${accessToken}; Path=/; Max-Age=7200`;
+}
 
 export function AuthProvider({
   children,
@@ -42,6 +56,7 @@ export function AuthProvider({
     setSession(session);
     setUser(session?.user ?? null);
     setLoading(false);
+    syncAuthCookie(session?.access_token ?? null);
   }, []);
 
   useEffect(() => {
@@ -66,14 +81,14 @@ export function AuthProvider({
 
     loadInitialSession();
 
-    const { data: listener } =
-      supabase.auth.onAuthStateChange(
-        (_event, session) => {
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
-      );
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+        syncAuthCookie(session?.access_token ?? null);
+      }
+    );
 
     return () => {
       cancelled = true;
@@ -83,7 +98,6 @@ export function AuthProvider({
       }
       listener.subscription.unsubscribe();
     };
-
   }, [syncSession]);
 
   const value = useMemo<AuthContextValue>(
@@ -92,6 +106,7 @@ export function AuthProvider({
       user,
       loading,
       signOut: async () => {
+        syncAuthCookie(null);
         await supabase.auth.signOut();
       },
     }),
