@@ -1,5 +1,5 @@
 -- DREVA reservation client profile helper (Sprint 3 - HU-08)
--- PENDING MIGRATION: review and run manually in Supabase SQL Editor.
+-- REVIEWED (Sprint 4 - Task 3): prepared to run manually in Supabase SQL Editor.
 -- DO NOT execute automatically.
 --
 -- Purpose: let an authenticated boutique (owner) fetch only the basic
@@ -39,7 +39,7 @@ begin
     return;
   end if;
 
-  if v_owner_id <> auth.uid() then
+  if v_owner_id is distinct from auth.uid() then
     return;
   end if;
 
