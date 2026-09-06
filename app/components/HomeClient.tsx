@@ -140,8 +140,7 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
       const matchesSearch =
         normalizedSearch.length === 0 ||
         dress.nombre?.toLowerCase().includes(normalizedSearch) ||
-        dress.color?.toLowerCase().includes(normalizedSearch) ||
-        dress.categoria?.toLowerCase().includes(normalizedSearch);
+        dress.color?.toLowerCase().includes(normalizedSearch);
 
       const matchesSize = !selectedSize || dress.talla === selectedSize;
       const matchesColor = !selectedColor || dress.color === selectedColor;

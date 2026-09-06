@@ -10,7 +10,6 @@ import { useAuth } from "@/app/providers/AuthProvider";
 type Vestido = {
   id: number;
   nombre: string;
-  categoria: string | null;
   color: string | null;
   precio: number | string | null;
   imagen: string | null;
@@ -115,7 +114,7 @@ export default function VestidosDashboardPage() {
               <h2 className="font-semibold">{v.nombre}</h2>
 
               <p className="text-sm text-gray-500">
-                {v.categoria} · {v.color}
+                {v.color}
               </p>
 
               <p className="mt-1 font-bold text-pink-600">

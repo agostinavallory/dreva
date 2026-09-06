@@ -8,7 +8,6 @@ type Dress = {
   precio: number | string | null;
   imagen: string | null;
   descripcion: string | null;
-  categoria: string | null;
   talla: string | null;
   color: string | null;
   created_at: string;

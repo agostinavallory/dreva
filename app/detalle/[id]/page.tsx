@@ -3,7 +3,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
 import type { Dress } from '@/app/page';
-import { DressCard } from '@/app/components/DressCard';
 
 function formatPrice(price: Dress['precio'] | undefined) {
   const numericPrice =
@@ -20,7 +19,7 @@ export default async function DetailPage(props: PageProps<'/detalle/[id]'>) {
   const { id } = await props.params;
   const { data: dress } = await supabase
     .from('vestidos')
-    .select('id,nombre,precio,imagen,descripcion,categoria,talla,color,owner_id')
+    .select('id,nombre,precio,imagen,descripcion,talla,color,owner_id')
     .eq('id', id)
     .maybeSingle();
 
@@ -50,14 +49,6 @@ export default async function DetailPage(props: PageProps<'/detalle/[id]'>) {
     );
   }
 
-const { data: related } = await supabase
-  .from('vestidos')
-  .select('id,nombre,precio,imagen,descripcion,categoria,talla,color')
-  .eq('categoria', selectedDress.categoria)
-  .neq('id', id)
-  .limit(4);
-
-const relatedDresses = (related as Dress[]) || [];
 const { data: local } = await supabase
   .from('locales')
   .select('*')
@@ -131,10 +122,9 @@ const { data: local } = await supabase
                 'Este vestido estará disponible para reserva cuando se complete la información del catálogo.'}
             </p>
 
-            <div className="mt-8 grid grid-cols-3 gap-3">
+            <div className="mt-8 grid grid-cols-2 gap-3">
               <Spec label="Talla" value={selectedDress?.talla ?? 'M'} />
               <Spec label="Color" value={selectedDress?.color ?? 'Rosa'} />
-              <Spec label="Categoría" value={selectedDress?.categoria ?? 'Evento'} />
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -152,30 +142,6 @@ const { data: local } = await supabase
             </div>
           </div>
         </section>
-        {/* RELACIONADOS */}
-{relatedDresses.length > 0 && (
-  <section className="mt-14">
-    
-    <div className="mb-6 flex items-end justify-between">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[var(--primary)]">
-          Recomendados
-        </p>
-
-        <h2 className="mt-2 text-3xl font-semibold text-[var(--ink)]">
-          También te puede gustar
-        </h2>
-      </div>
-    </div>
-
-    <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-4">
-      {relatedDresses.map((dress) => (
-        <DressCard key={dress.id} dress={dress} />
-      ))}
-    </div>
-
-  </section>
-)}
       </div>
     </main>
   );

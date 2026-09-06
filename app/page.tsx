@@ -8,7 +8,6 @@ export type Dress = {
   precio: number | string | null;
   imagen: string | null;
   descripcion: string | null;
-  categoria: string | null;
   talla: string | null;
   color: string | null;
   largo?: string | null;
@@ -25,7 +24,6 @@ const fallbackDresses: Dress[] = [
     imagen:
       "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=900&q=80",
     descripcion: "Tul rosa con detalles delicados para noches especiales.",
-    categoria: "XV anos",
     talla: "M",
     color: "Rosa",
     largo: "Largo",
@@ -40,7 +38,6 @@ const fallbackDresses: Dress[] = [
     imagen:
       "https://images.unsplash.com/photo-1566174053879-31528523f8ae?auto=format&fit=crop&w=900&q=80",
     descripcion: "Silueta elegante en morado suave con caida fluida.",
-    categoria: "Boda",
     talla: "S",
     color: "Morado",
     largo: "Midi",
@@ -55,7 +52,6 @@ const fallbackDresses: Dress[] = [
     imagen:
       "https://i.pinimg.com/236x/4c/cf/74/4ccf74d2bf091c2bf5c7b4664ea66bd2.jpg",
     descripcion: "Corte princesa azul, ideal para gala y graduaciones.",
-    categoria: "Graduacion",
     talla: "M",
     color: "Azul",
     largo: "Largo",
@@ -70,7 +66,6 @@ const fallbackDresses: Dress[] = [
     imagen:
       "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=900&q=80",
     descripcion: "Champagne minimalista para eventos de dia o noche.",
-    categoria: "Fiesta",
     talla: "L",
     color: "Champagne",
     largo: "Corto",
@@ -83,7 +78,7 @@ const fallbackDresses: Dress[] = [
 async function getDresses() {
   const { data, error } = await supabase
     .from("vestidos")
-    .select("id,nombre,precio,imagen,descripcion,categoria,talla,color,largo,created_at,owner_id")
+    .select("id,nombre,precio,imagen,descripcion,talla,color,largo,created_at,owner_id")
     .order("nombre", { ascending: true });
 
   if (error) {
