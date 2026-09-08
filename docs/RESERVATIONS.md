@@ -116,7 +116,7 @@ Permite:
 
 ## Límites Conocidos
 
-- La expiración automática depende de que la función SQL se ejecute externamente.
+- La expiración automática la ejecuta `pg_cron` cada 10 minutos mediante el job `expire-stale-reservations` (ver `supabase/expire_reservations_cron.sql`).
 - El código de confirmación se genera actualmente desde el cliente.
 - La clienta no tiene cancelación propia desde `my-reservations`.
 - La navegación por rol depende de metadata si está disponible.
