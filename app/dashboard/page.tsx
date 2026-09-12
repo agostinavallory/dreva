@@ -44,6 +44,11 @@ type Reservation = {
   } | null;
 };
 
+type ClientProfile = {
+  nombre: string;
+  apellido: string;
+};
+
 type TodaySectionId = "newRequests" | "waitingMessage" | "nextAppointment";
 
 type AppointmentDateParts = {
@@ -141,6 +146,10 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(0);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [clientMap, setClientMap] = useState<Map<string, ClientProfile>>(
+    new Map()
+  );
+  const [localName, setLocalName] = useState<string | null>(null);
 
   const upcomingAppointments = useMemo(() => {
     return reservations
@@ -247,15 +256,78 @@ const stats = useMemo(() => {
     return (data || []) as Reservation[];
   }, []);
 
+  const fetchClientProfile = useCallback(async (reservationId: string) => {
+    const { data, error } = await supabase.rpc(
+      "get_reservation_client_profile",
+      {
+        p_reservation_id: reservationId,
+      }
+    );
+
+    if (error || !data || data.length === 0) {
+      return null;
+    }
+
+    const profile = data[0] as ClientProfile;
+
+    if (!profile.nombre && !profile.apellido) {
+      return null;
+    }
+
+    return profile;
+  }, []);
+
+  const buildClientMap = useCallback(
+    async (reservations: Reservation[]) => {
+      const map = new Map<string, ClientProfile>();
+
+      for (const reservation of reservations) {
+        if (
+          reservation.status !== "accepted" &&
+          reservation.status !== "appointment_scheduled"
+        ) {
+          continue;
+        }
+
+        const profile = await fetchClientProfile(reservation.id);
+
+        if (profile) {
+          map.set(reservation.id, profile);
+        }
+      }
+
+      return map;
+    },
+    [fetchClientProfile]
+  );
+
+  const getClientName = useCallback(
+    (reservationId: string) => {
+      const profile = clientMap.get(reservationId);
+
+      if (!profile) {
+        return null;
+      }
+
+      return (
+        [profile.nombre, profile.apellido].filter(Boolean).join(" ").trim() ||
+        null
+      );
+    },
+    [clientMap]
+  );
+
   const reload = useCallback(async () => {
     if (!userId) {
       return;
     }
 
     const data = await fetchReservations(userId);
+    const nextClientMap = await buildClientMap(data);
     setCurrentTime(new Date().getTime());
     setReservations(data);
-  }, [fetchReservations, userId]);
+    setClientMap(nextClientMap);
+  }, [buildClientMap, fetchReservations, userId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -281,6 +353,20 @@ const stats = useMemo(() => {
 
       setCurrentTime(now);
       setReservations(data);
+
+      const nextClientMap = await buildClientMap(data);
+      const { data: localData } = await supabase
+        .from("locales")
+        .select("nombre")
+        .eq("owner_id", userId)
+        .maybeSingle();
+
+      if (cancelled) {
+        return;
+      }
+
+      setClientMap(nextClientMap);
+      setLocalName(localData?.nombre ?? null);
       setLoading(false);
     }
 
@@ -289,7 +375,7 @@ const stats = useMemo(() => {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, fetchReservations, userId]);
+  }, [authLoading, buildClientMap, fetchReservations, userId]);
 
   async function transitionReservation(
     id: string,
@@ -344,7 +430,8 @@ const stats = useMemo(() => {
         <section className="mb-6 grid gap-3 rounded-[1.5rem] border border-[#ffd2e2] bg-white px-4 py-4 shadow-[0_14px_42px_rgba(255,45,126,0.07)] sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(520px,0.9fr)] lg:items-stretch">
           <div className="flex min-h-32 flex-col justify-center rounded-[1.2rem] border border-[#f4e3eb] bg-[#fff8fb] px-5 py-4 text-left sm:px-6">
             <h1 className="text-xl font-bold leading-tight text-[#17151b] sm:text-2xl">
-              Hola, Boutique Laura {"\uD83D\uDC4B"}
+              {localName ? `Hola, ${localName} ` : "Hola "}
+              {"\uD83D\uDC4B"}
             </h1>
             <p className="mt-2 max-w-md text-sm font-medium leading-6 text-[#6d6670]">
               Hoy tenés {stats.pendingRequests} cosas por revisar.
@@ -389,6 +476,7 @@ const stats = useMemo(() => {
             waitingContactReservations={groupedReservations.waitingContact}
             upcomingAppointments={upcomingAppointments}
             busyId={busyId}
+            getClientName={getClientName}
             onTransition={transitionReservation}
           />
         )}
@@ -500,12 +588,14 @@ function PendingTasks({
   waitingContactReservations,
   upcomingAppointments,
   busyId,
+  getClientName,
   onTransition,
 }: {
   pendingReservations: Reservation[];
   waitingContactReservations: Reservation[];
   upcomingAppointments: Reservation[];
   busyId: string | null;
+  getClientName: (reservationId: string) => string | null;
   onTransition: (
     id: string,
     action: "accept" | "reject" | "schedule" | "complete",
@@ -553,7 +643,11 @@ function PendingTasks({
           tone="border-[#ffd68a] bg-[#fffaf0] text-[#b66b00]"
         >
           {waitingContactReservations.map((reservation) => (
-            <WaitingContactCard key={reservation.id} reservation={reservation} />
+            <WaitingContactCard
+              key={reservation.id}
+              reservation={reservation}
+              clientName={getClientName(reservation.id)}
+            />
           ))}
         </TodayAccordionSection>
 
@@ -566,7 +660,11 @@ function PendingTasks({
           tone="border-[#a8e2c4] bg-[#f2fff8] text-[#247a50]"
         >
           {upcomingAppointments.map((reservation) => (
-            <NextAppointmentCard key={reservation.id} reservation={reservation} />
+            <NextAppointmentCard
+              key={reservation.id}
+              reservation={reservation}
+              clientName={getClientName(reservation.id)}
+            />
           ))}
         </TodayAccordionSection>
       </div>
@@ -694,10 +792,15 @@ function PendingRequestCard({
   );
 }
 
-function WaitingContactCard({ reservation }: { reservation: Reservation }) {
+function WaitingContactCard({
+  reservation,
+  clientName,
+}: {
+  reservation: Reservation;
+  clientName: string | null;
+}) {
   const dressName = reservation.vestidos?.nombre ?? "Vestido DREVA";
   const dressImage = reservation.vestidos?.imagen;
-  const clientName = getClientName(reservation);
 
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
@@ -748,10 +851,15 @@ function WaitingContactCard({ reservation }: { reservation: Reservation }) {
   );
 }
 
-function NextAppointmentCard({ reservation }: { reservation: Reservation }) {
+function NextAppointmentCard({
+  reservation,
+  clientName,
+}: {
+  reservation: Reservation;
+  clientName: string | null;
+}) {
   const dressName = reservation.vestidos?.nombre ?? "Vestido DREVA";
   const dressImage = reservation.vestidos?.imagen;
-  const clientName = getClientName(reservation);
   const appointment = parseAppointmentDate(reservation.appointment_date);
 
   if (!appointment) {
@@ -806,28 +914,5 @@ function NextAppointmentCard({ reservation }: { reservation: Reservation }) {
         </div>
       </div>
     </article>
-  );
-}
-
-function getClientName(reservation: Reservation) {
-  const source = reservation as Reservation & {
-    client_name?: string | null;
-    clientName?: string | null;
-    cliente_nombre?: string | null;
-    profiles?: { nombre?: string | null; full_name?: string | null; name?: string | null } | null;
-    profile?: { nombre?: string | null; full_name?: string | null; name?: string | null } | null;
-  };
-
-  return (
-    source.client_name ??
-    source.clientName ??
-    source.cliente_nombre ??
-    source.profiles?.nombre ??
-    source.profiles?.full_name ??
-    source.profiles?.name ??
-    source.profile?.nombre ??
-    source.profile?.full_name ??
-    source.profile?.name ??
-    null
   );
 }
