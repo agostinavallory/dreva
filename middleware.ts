@@ -3,12 +3,8 @@ import type { NextRequest } from "next/server";
 
 import { supabaseUrl, supabaseKey, AUTH_TOKEN_COOKIE } from "./lib/supabaseConfig";
 
-const ALLOWED_ROLES = ["local", "admin"];
-
 type SupabaseUser = {
   id: string;
-  app_metadata?: Record<string, unknown>;
-  user_metadata?: Record<string, unknown>;
 };
 
 async function fetchSupabaseUser(accessToken: string): Promise<SupabaseUser | null> {
@@ -31,23 +27,29 @@ async function fetchSupabaseUser(accessToken: string): Promise<SupabaseUser | nu
   }
 }
 
-function resolveRole(user: SupabaseUser | null): string | undefined {
-  if (!user) {
-    return undefined;
+async function isLocalOwner(accessToken: string, ownerId: string): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/locales?select=id&owner_id=eq.${ownerId}`,
+      {
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const rows = (await response.json()) as { id: string }[];
+
+    return Array.isArray(rows) && rows.length > 0;
+  } catch {
+    return false;
   }
-
-  const appRole = user.app_metadata?.role;
-  const userRole = user.user_metadata?.role;
-
-  if (typeof appRole === "string" && appRole.length > 0) {
-    return appRole;
-  }
-
-  if (typeof userRole === "string" && userRole.length > 0) {
-    return userRole;
-  }
-
-  return undefined;
 }
 
 export async function middleware(request: NextRequest) {
@@ -63,9 +65,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  const role = resolveRole(user);
+  const ownsLocal = await isLocalOwner(accessToken, user.id);
 
-  if (!role || !ALLOWED_ROLES.includes(role)) {
+  if (!ownsLocal) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
