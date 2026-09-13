@@ -34,8 +34,6 @@ export default function ConfiguracionPage() {
       const user = userData?.user;
 
 
-      console.log("USER ID:", user?.id);
-
       if (!user) {
         setLoading(false);
         return;
@@ -51,7 +49,6 @@ export default function ConfiguracionPage() {
 
 
       if (error) {
-        console.log("Error:", error);
         setLoading(false);
         return;
       }
@@ -86,6 +83,10 @@ export default function ConfiguracionPage() {
   }
 
   async function handleSave() {
+    if (!local) {
+      return;
+    }
+
     const { error } = await supabase
       .from("locales")
       .update({
