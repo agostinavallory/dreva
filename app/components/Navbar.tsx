@@ -6,10 +6,6 @@ import { useAuth } from "@/app/providers/AuthProvider";
 
 export function Navbar() {
   const { user, loading } = useAuth();
-  const role =
-    (user?.app_metadata?.role as string | undefined) ??
-    (user?.user_metadata?.role as string | undefined);
-  const canAccessDashboard = role === "local" || role === "admin";
 
   return (
     <nav className="flex items-center justify-between px-10 py-5 bg-white/70 backdrop-blur sticky top-0 z-50" >
@@ -31,7 +27,7 @@ export function Navbar() {
             Mis Reservas
           </Link>
         )}
-        {!loading && user && canAccessDashboard && (
+        {!loading && user && (
           <Link
             href="/dashboard"
             className="text-sm font-medium text-gray-600 hover:text-black"

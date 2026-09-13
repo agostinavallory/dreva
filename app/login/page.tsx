@@ -5,10 +5,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { supabase } from "@/lib/supabaseClient";
+import { isLocalOwner } from "@/app/hooks/useIsLocalOwner";
 
 export default function LoginPage() {
   const router = useRouter();
-  const loginRedirectPath = "/";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +26,7 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -38,7 +38,16 @@ export default function LoginPage() {
       return;
     }
 
-    router.push(loginRedirectPath);
+    const loggedUser = data?.user;
+
+    if (!loggedUser) {
+      router.push("/");
+      return;
+    }
+
+    const isLocal = await isLocalOwner(loggedUser.id);
+
+    router.push(isLocal ? "/dashboard" : "/");
   }
 
   return (
