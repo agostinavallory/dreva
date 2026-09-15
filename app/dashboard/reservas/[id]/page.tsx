@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import ReservationNextStep from "@/app/components/ReservationNextStep";
 import ManageRequestPanel from "@/app/components/ManageRequestPanel";
+import DashboardNav from "@/app/components/DashboardNav";
 
 type Reservation = {
   id: string;
@@ -49,6 +51,15 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled: "bg-rose-50 text-rose-700 border-rose-100",
   expired: "bg-zinc-100 text-zinc-600 border-zinc-200",
 };
+
+const inputClass =
+  "w-full rounded-xl border border-[#eadfe5] bg-white px-4 py-3.5 text-[15px] font-medium text-[#17151b] outline-none transition placeholder:text-[#b3a9b0] focus:border-[#ff9ec2] focus:ring-4 focus:ring-[#ffe7f0]";
+
+const modalButtonClass =
+  "w-full rounded-full bg-[#ff2f78] px-5 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(255,47,120,0.22)] transition hover:-translate-y-0.5 hover:bg-[#ef1f68] disabled:cursor-not-allowed disabled:opacity-60";
+
+const cancelButtonClass =
+  "w-full rounded-full border border-[#f3c7d6] bg-white px-5 py-3 text-sm font-bold text-[#d92f68] transition hover:bg-[#fff7fa] disabled:cursor-not-allowed disabled:opacity-60";
 
 function formatDate(value: string | null) {
   if (!value) return "Sin definir";
@@ -148,468 +159,482 @@ export default function ReservationPage() {
   }, [id]);
 
   useEffect(() => {
-  if (id) {
-    const timeoutId = window.setTimeout(() => {
-      void loadReservation();
-    }, 0);
+    if (id) {
+      const timeoutId = window.setTimeout(() => {
+        void loadReservation();
+      }, 0);
 
-    return () => window.clearTimeout(timeoutId);
-  }
-}, [id, loadReservation]);
+      return () => window.clearTimeout(timeoutId);
+    }
+  }, [id, loadReservation]);
 
-async function handleScheduleAppointment(event: FormEvent<HTMLFormElement>) {
-  event.preventDefault();
+  async function handleScheduleAppointment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  if (!reservation || !appointmentDate || !appointmentTime) {
-    alert("Selecciona la fecha y la hora de la prueba.");
-    return;
-  }
-
-  const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
-
-  if (Number.isNaN(appointmentDateTime.getTime())) {
-    alert("La fecha u hora de la prueba no es valida.");
-    return;
-  }
-
-  setSavingAppointment(true);
-
-  const { error } = await supabase.rpc("transition_reservation", {
-    p_reservation_id: reservation.id,
-    p_action: "schedule",
-    p_appointment_date: appointmentDateTime.toISOString(),
-  });
-
-  if (error) {
-    console.error("[DREVA reservation detail] schedule error", error);
-    alert(error.message);
-    setSavingAppointment(false);
-    return;
-  }
-
-  setShowSchedulePanel(false);
-  setAppointmentDate("");
-  setAppointmentTime("");
-  await loadReservation();
-  setSavingAppointment(false);
-}
-
-async function handleValidatePin(event: FormEvent<HTMLFormElement>) {
-  event.preventDefault();
-
-  if (!reservation) {
-    return;
-  }
-
-  if (pin.length !== 4) {
-    setPinError("Ingresa el codigo de 4 digitos.");
-    return;
-  }
-
-  setValidatingPin(true);
-  setPinError(null);
-
-  const { error } = await supabase.rpc("validate_reservation_pin", {
-    p_reservation_id: reservation.id,
-    p_pin: pin,
-  });
-
-  if (error) {
-    console.error("[DREVA reservation detail] pin validation error", error);
-
-    if (error.message.includes("Invalid PIN")) {
-      setPinError("El codigo no coincide. Verifica el PIN con la clienta e intenta de nuevo.");
-    } else {
-      setPinError(error.message);
+    if (!reservation || !appointmentDate || !appointmentTime) {
+      alert("Selecciona la fecha y la hora de la prueba.");
+      return;
     }
 
+    const appointmentDateTime = new Date(`${appointmentDate}T${appointmentTime}`);
+
+    if (Number.isNaN(appointmentDateTime.getTime())) {
+      alert("La fecha u hora de la prueba no es valida.");
+      return;
+    }
+
+    setSavingAppointment(true);
+
+    const { error } = await supabase.rpc("transition_reservation", {
+      p_reservation_id: reservation.id,
+      p_action: "schedule",
+      p_appointment_date: appointmentDateTime.toISOString(),
+    });
+
+    if (error) {
+      console.error("[DREVA reservation detail] schedule error", error);
+      alert(error.message);
+      setSavingAppointment(false);
+      return;
+    }
+
+    setShowSchedulePanel(false);
+    setAppointmentDate("");
+    setAppointmentTime("");
+    await loadReservation();
+    setSavingAppointment(false);
+  }
+
+  async function handleValidatePin(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!reservation) {
+      return;
+    }
+
+    if (pin.length !== 4) {
+      setPinError("Ingresa el codigo de 4 digitos.");
+      return;
+    }
+
+    setValidatingPin(true);
+    setPinError(null);
+
+    const { error } = await supabase.rpc("validate_reservation_pin", {
+      p_reservation_id: reservation.id,
+      p_pin: pin,
+    });
+
+    if (error) {
+      console.error("[DREVA reservation detail] pin validation error", error);
+
+      if (error.message.includes("Invalid PIN")) {
+        setPinError("El codigo no coincide. Verifica el PIN con la clienta e intenta de nuevo.");
+      } else {
+        setPinError(error.message);
+      }
+
+      setValidatingPin(false);
+      return;
+    }
+
+    setShowPinPanel(false);
+    setPin("");
+    setSuccessMessage("Reserva confirmada correctamente.");
+    await loadReservation();
     setValidatingPin(false);
-    return;
   }
 
-  setShowPinPanel(false);
-  setPin("");
-  setSuccessMessage("Reserva confirmada correctamente.");
-  await loadReservation();
-  setValidatingPin(false);
-}
+  async function handleCompleteReservation() {
+    if (!reservation) {
+      return;
+    }
 
-async function handleCompleteReservation() {
-  if (!reservation) {
-    return;
-  }
+    setCompletingReservation(true);
+    setSuccessMessage(null);
 
-  setCompletingReservation(true);
-  setSuccessMessage(null);
+    const { error } = await supabase.rpc("transition_reservation", {
+      p_reservation_id: reservation.id,
+      p_action: "complete",
+      p_appointment_date: null,
+    });
 
-  const { error } = await supabase.rpc("transition_reservation", {
-    p_reservation_id: reservation.id,
-    p_action: "complete",
-    p_appointment_date: null,
-  });
+    if (error) {
+      console.error("[DREVA reservation detail] complete error", error);
+      alert(error.message);
+      setCompletingReservation(false);
+      return;
+    }
 
-  if (error) {
-    console.error("[DREVA reservation detail] complete error", error);
-    alert(error.message);
+    setSuccessMessage("Reserva finalizada correctamente.");
+    await loadReservation();
     setCompletingReservation(false);
-    return;
   }
 
-  setSuccessMessage("Reserva finalizada correctamente.");
-  await loadReservation();
-  setCompletingReservation(false);
-}
+  async function handleManageAction(action: "accept" | "reject") {
+    if (!reservation) {
+      return;
+    }
 
-async function handleManageAction(action: "accept" | "reject") {
-  if (!reservation) {
-    return;
-  }
+    setManagingRequest(true);
+    setSuccessMessage(null);
+    setErrorMessage(null);
 
-  setManagingRequest(true);
-  setSuccessMessage(null);
-  setErrorMessage(null);
+    const { error } = await supabase.rpc("transition_reservation", {
+      p_reservation_id: reservation.id,
+      p_action: action,
+      p_appointment_date: null,
+    });
 
-  const { error } = await supabase.rpc("transition_reservation", {
-    p_reservation_id: reservation.id,
-    p_action: action,
-    p_appointment_date: null,
-  });
+    if (error) {
+      console.error("[DREVA reservation detail] manage error", error);
+      setErrorMessage(error.message);
+      setManagingRequest(false);
+      return;
+    }
 
-  if (error) {
-    console.error("[DREVA reservation detail] manage error", error);
-    setErrorMessage(error.message);
+    setShowManagePanel(false);
     setManagingRequest(false);
-    return;
+
+    if (action === "accept") {
+      setSuccessMessage("Solicitud aceptada correctamente.");
+    } else {
+      setErrorMessage("Solicitud rechazada.");
+    }
+
+    await loadReservation();
   }
 
-  setShowManagePanel(false);
-  setManagingRequest(false);
-  setSuccessMessage(
-    action === "accept"
-      ? "Solicitud aceptada correctamente."
-      : "Solicitud rechazada.",
-  );
-  await loadReservation();
-}
+  function handlePrimaryAction() {
+    switch (reservation?.status) {
+      case "pending":
+        setShowManagePanel(true);
+        break;
 
+      case "accepted":
+        setShowSchedulePanel(true);
+        break;
 
-function handlePrimaryAction() {
-  switch (reservation?.status) {
-    case "pending":
-  setShowManagePanel(true);
-  break;
+      case "appointment_scheduled":
+        setPin("");
+        setPinError(null);
+        setShowPinPanel(true);
+        break;
 
-    case "accepted":
-      setShowSchedulePanel(true);
-      break;
+      case "confirmed":
+        void handleCompleteReservation();
+        break;
 
-    case "appointment_scheduled":
-      setPin("");
-      setPinError(null);
-      setShowPinPanel(true);
-      break;
-
-    case "confirmed":
-      void handleCompleteReservation();
-      break;
-
-    default:
-      break;
+      default:
+        break;
+    }
   }
-}
 
   if (loading) {
-  return <main className="p-6">Cargando reserva...</main>;
-}
+    return (
+      <main className="min-h-screen bg-[var(--background)] px-4 py-5 text-[var(--foreground)] sm:px-8">
+        <section className="mx-auto max-w-5xl">
+          <DashboardNav />
+          <p className="mt-10 text-sm font-medium text-[var(--muted)]">
+            Cargando reserva...
+          </p>
+        </section>
+      </main>
+    );
+  }
 
-if (!reservation) {
+  if (!reservation) {
+    return (
+      <main className="min-h-screen bg-[var(--background)] px-4 py-5 text-[var(--foreground)] sm:px-8">
+        <section className="mx-auto max-w-5xl">
+          <DashboardNav />
+          <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[#eee4e9] bg-white px-6 py-14 text-center shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
+            <p className="text-lg font-extrabold text-[#17151b]">
+              Reserva no encontrada.
+            </p>
+            <Link
+              href="/dashboard/reservas"
+              className="mt-6 inline-flex items-center justify-center rounded-full border border-[#f3c7d6] bg-white px-5 py-2.5 text-sm font-bold text-[#d92f68] transition hover:bg-[#fff7fa]"
+            >
+              Volver a reservas
+            </Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  const timestamps: { label: string; value: string }[] = [
+    {
+      label: "Solicitada",
+      value: reservation.created_at ? formatDate(reservation.created_at) : null,
+    },
+    {
+      label: "Aceptada",
+      value: reservation.accepted_at ? formatDate(reservation.accepted_at) : null,
+    },
+    {
+      label: "Finalizada",
+      value: reservation.completed_at ? formatDate(reservation.completed_at) : null,
+    },
+    {
+      label: "Cancelada",
+      value: reservation.cancelled_at ? formatDate(reservation.cancelled_at) : null,
+    },
+  ].filter((item): item is { label: string; value: string } => item.value !== null);
+
+  const dressImage = reservation.vestidos?.imagen;
+
   return (
-    <main className="max-w-5xl mx-auto p-6">
-      <Link
-        href="/dashboard/reservas"
-        className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-pink-600 hover:text-pink-700"
-      >
-        Volver a reservas
-      </Link>
-      <p className="text-sm text-gray-500">Reserva no encontrada.</p>
+    <main className="min-h-screen bg-[var(--background)] px-4 py-5 text-[var(--foreground)] sm:px-8">
+      <section className="mx-auto max-w-5xl">
+        <DashboardNav />
+
+        <Link
+          href="/dashboard/reservas"
+          className="mb-5 inline-flex w-full items-center justify-center rounded-full border border-[#f3c7d6] bg-white px-5 py-2.5 text-sm font-bold text-[#d92f68] transition hover:bg-[#fff7fa] sm:w-auto"
+        >
+          Volver a reservas
+        </Link>
+
+        <header className="mb-8 overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
+          <div className="grid md:grid-cols-[minmax(0,7fr)_minmax(0,13fr)]">
+            <div className="relative aspect-[4/4.65] min-h-48 md:aspect-auto md:min-h-full">
+              {dressImage ? (
+                <Image
+                  src={dressImage}
+                  alt={reservation.vestidos?.nombre ?? "Vestido DREVA"}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 34vw"
+                  className="object-contain object-left"
+                />
+              ) : (
+                <div className="flex h-full min-h-48 w-full items-center justify-center bg-[#f4eef1] px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98]">
+                  Imagen del vestido no disponible
+                </div>
+              )}
+            </div>
+
+            <div className="flex min-w-0 flex-col justify-between gap-5 p-5 sm:p-6">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <h1 className="text-xl font-extrabold leading-tight text-[#17151b] sm:text-2xl">
+                    {reservation.vestidos?.nombre}
+                  </h1>
+                  <span
+                    className={`inline-flex shrink-0 rounded-full border px-3 py-1 text-xs font-bold ${
+                      STATUS_STYLES[reservation.status]
+                    }`}
+                  >
+                    {STATUS_LABELS[reservation.status]}
+                  </span>
+                </div>
+
+                <div className="mt-4 grid gap-2 text-sm font-semibold leading-6 text-[#5d535c] sm:grid-cols-2">
+                  <p>
+                    <span className="text-[#9a8f98]">Evento:</span>{" "}
+                    {formatDate(reservation.event_date)}
+                  </p>
+                  <p>
+                    <span className="text-[#9a8f98]">Cita:</span>{" "}
+                    {formatDate(reservation.appointment_date)}
+                  </p>
+                  <p>
+                    <span className="text-[#9a8f98]">Precio:</span>{" "}
+                    Gs. {formatPrice(reservation.vestidos?.precio ?? null)}
+                  </p>
+                </div>
+
+                {clientName && (
+                  <p className="mt-2 text-sm font-semibold leading-6 text-[#6b626b]">
+                    <span className="text-[#9a8f98]">Clienta:</span> {clientName}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <ReservationNextStep
+          status={reservation.status}
+          dressName={reservation.vestidos?.nombre}
+          eventDate={reservation.event_date}
+          appointmentDate={reservation.appointment_date}
+          onAction={handlePrimaryAction}
+          actionDisabled={completingReservation}
+          actionLabel={completingReservation ? "Finalizando..." : undefined}
+        />
+
+        {successMessage && (
+          <div className="mt-6 rounded-xl border border-[#ccefe0] bg-[#f0fff8] px-5 py-4 text-sm font-bold text-[#247a50]">
+            {successMessage}
+          </div>
+        )}
+
+        {errorMessage && (
+          <div className="mt-6 rounded-xl border border-[#f5c6d7] bg-[#fff4f8] px-5 py-4 text-sm font-bold text-[#d92f68]">
+            {errorMessage}
+          </div>
+        )}
+
+        {timestamps.length > 0 && (
+          <div className="mt-6 rounded-[1.5rem] border border-[#eee4e9] bg-white p-5 shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#ff2f78]">
+              Detalles
+            </p>
+            <div className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-[#17151b]">
+              {timestamps.map((item) => (
+                <div key={item.label} className="flex items-center justify-between gap-4">
+                  <span className="text-[#9a8f98]">{item.label}</span>
+                  <span>{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {showManagePanel && (
+          <ManageRequestPanel
+            onAccept={() => handleManageAction("accept")}
+            onReject={() => handleManageAction("reject")}
+            onClose={() => setShowManagePanel(false)}
+            busy={managingRequest}
+          />
+        )}
+
+        {showSchedulePanel && reservation.status === "accepted" && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <form
+              onSubmit={handleScheduleAppointment}
+              className="w-full max-w-md rounded-[1.5rem] border border-[#eee4e9] bg-white p-6 shadow-[0_14px_42px_rgba(38,31,36,0.12)]"
+            >
+              <h2 className="text-xl font-extrabold text-[#17151b]">
+                Agendar cita
+              </h2>
+
+              <p className="mt-2 text-sm font-medium leading-6 text-[#6d6670]">
+                Registra la fecha y hora de la prueba presencial que ya coordinaron por
+                WhatsApp. La fecha del evento de la clienta queda intacta.
+              </p>
+
+              <div className="mt-6 space-y-4">
+                <label className="block">
+                  <span className="text-sm font-bold text-[#4f4951]">
+                    Fecha de la prueba
+                  </span>
+                  <input
+                    type="date"
+                    value={appointmentDate}
+                    onChange={(event) => setAppointmentDate(event.target.value)}
+                    required
+                    className={`mt-2 ${inputClass}`}
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-sm font-bold text-[#4f4951]">
+                    Hora de la prueba
+                  </span>
+                  <input
+                    type="time"
+                    value={appointmentTime}
+                    onChange={(event) => setAppointmentTime(event.target.value)}
+                    required
+                    className={`mt-2 ${inputClass}`}
+                  />
+                </label>
+              </div>
+
+              <div className="mt-6 space-y-3">
+                <button
+                  type="submit"
+                  disabled={savingAppointment}
+                  className={modalButtonClass}
+                >
+                  {savingAppointment ? "Agendando..." : "Agendar cita"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowSchedulePanel(false)}
+                  disabled={savingAppointment}
+                  className={cancelButtonClass}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {showPinPanel && reservation.status === "appointment_scheduled" && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+            <form
+              onSubmit={handleValidatePin}
+              className="w-full max-w-md rounded-[1.5rem] border border-[#eee4e9] bg-white p-6 shadow-[0_14px_42px_rgba(38,31,36,0.12)]"
+            >
+              <h2 className="text-xl font-extrabold text-[#17151b]">
+                Validar codigo
+              </h2>
+
+              <p className="mt-2 text-sm font-medium leading-6 text-[#6d6670]">
+                Ingresa el PIN de 4 digitos que te muestra la clienta para confirmar la
+                reserva.
+              </p>
+
+              <label className="mt-6 block">
+                <span className="text-sm font-bold text-[#4f4951]">
+                  PIN de la clienta
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{4}"
+                  maxLength={4}
+                  value={pin}
+                  onChange={(event) => {
+                    setPin(event.target.value.replace(/\D/g, "").slice(0, 4));
+                    setPinError(null);
+                  }}
+                  className="mt-2 block w-full rounded-xl border border-[#eadfe5] bg-white px-4 py-3.5 text-center font-mono text-2xl font-bold tracking-[0.35em] text-[#17151b] outline-none transition focus:border-[#ff9ec2] focus:ring-4 focus:ring-[#ffe7f0]"
+                  aria-invalid={pinError ? "true" : "false"}
+                  required
+                />
+              </label>
+
+              {pinError && (
+                <p className="mt-3 rounded-xl border border-[#f5c6d7] bg-[#fff4f8] px-4 py-3 text-sm font-bold text-[#d92f68]">
+                  {pinError}
+                </p>
+              )}
+
+              <div className="mt-6 space-y-3">
+                <button
+                  type="submit"
+                  disabled={validatingPin}
+                  className={modalButtonClass}
+                >
+                  {validatingPin ? "Validando..." : "Confirmar reserva"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPinPanel(false);
+                    setPin("");
+                    setPinError(null);
+                  }}
+                  disabled={validatingPin}
+                  className={cancelButtonClass}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </section>
     </main>
   );
-}
-
-const timestamps: { label: string; value: string }[] = [
-  {
-    label: "Solicitada",
-    value: reservation.created_at ? formatDate(reservation.created_at) : null,
-  },
-  {
-    label: "Aceptada",
-    value: reservation.accepted_at ? formatDate(reservation.accepted_at) : null,
-  },
-  {
-    label: "Finalizada",
-    value: reservation.completed_at ? formatDate(reservation.completed_at) : null,
-  },
-  {
-    label: "Cancelada",
-    value: reservation.cancelled_at ? formatDate(reservation.cancelled_at) : null,
-  },
-].filter((item): item is { label: string; value: string } => item.value !== null);
-
-return (
-  <main className="max-w-5xl mx-auto p-6">
-
-    <Link
-      href="/dashboard/reservas"
-      className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-pink-600 hover:text-pink-700"
-    >
-      Volver a reservas
-    </Link>
-
-    <div className="mb-8">
-
-  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-pink-600">
-    Reserva
-  </p>
-
-  <h1 className="mt-2 text-3xl font-bold">
-    {reservation.vestidos?.nombre}
-  </h1>
-
-<div
-  className={`mt-4 inline-flex rounded-full border px-4 py-2 text-sm font-semibold ${
-    STATUS_STYLES[reservation.status]
-  }`}
->
-  {STATUS_LABELS[reservation.status]}
-</div>
-
-</div>
-
-<div className="grid gap-4 md:grid-cols-3">
-
-  <div className="rounded-2xl border bg-white p-5 shadow-sm">
-    <p className="text-xs font-semibold uppercase text-gray-500">
-      Evento
-    </p>
-
-    <p className="mt-2 text-lg font-semibold">
-     {formatDate(reservation.event_date)}
-    </p>
-  </div>
-
-  <div className="rounded-2xl border bg-white p-5 shadow-sm">
-    <p className="text-xs font-semibold uppercase text-gray-500">
-      Cita de prueba
-    </p>
-
-    <p className="mt-2 text-lg font-semibold">
-     {formatDate(reservation.appointment_date)}
-    </p>
-  </div>
-
-  <div className="rounded-2xl border bg-white p-5 shadow-sm">
-    <p className="text-xs font-semibold uppercase text-gray-500">
-      Precio
-    </p>
-
-    <p className="mt-2 text-lg font-semibold">
-      Gs. {formatPrice(reservation.vestidos?.precio ?? null)}
-    </p>
-  </div>
-
-</div>
-
-{clientName && (
-  <div className="mt-4 rounded-2xl border bg-white p-5 shadow-sm">
-    <p className="text-xs font-semibold uppercase text-gray-500">
-      Clienta
-    </p>
-
-    <p className="mt-2 text-lg font-semibold">
-      {clientName}
-    </p>
-  </div>
-)}
-
-
-<ReservationNextStep
-  status={reservation.status}
-  dressName={reservation.vestidos?.nombre}
-  eventDate={reservation.event_date}
-  appointmentDate={reservation.appointment_date}
-  onAction={handlePrimaryAction}
-  actionDisabled={completingReservation}
-  actionLabel={completingReservation ? "Finalizando..." : undefined}
-/>
-
-{successMessage && (
-  <div className="mt-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4 text-sm font-semibold text-emerald-700">
-    {successMessage}
-  </div>
-)}
-
-{errorMessage && (
-  <div className="mt-6 rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700">
-    {errorMessage}
-  </div>
-)}
-
-{timestamps.length > 0 && (
-  <div className="mt-6 rounded-2xl border bg-white p-5 shadow-sm">
-    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pink-600">
-      Detalles
-    </p>
-
-    <div className="mt-4 grid gap-3 text-sm font-semibold leading-6 text-gray-700">
-      {timestamps.map((item) => (
-        <div key={item.label} className="flex items-center justify-between gap-4">
-          <span className="text-gray-500">{item.label}</span>
-          <span>{item.value}</span>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
-{showManagePanel && (
-  <ManageRequestPanel
-    onAccept={() => handleManageAction("accept")}
-    onReject={() => handleManageAction("reject")}
-    onClose={() => setShowManagePanel(false)}
-    busy={managingRequest}
-  />
-)}
-
-
-{showSchedulePanel && reservation.status === "accepted" && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-    <form
-      onSubmit={handleScheduleAppointment}
-      className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
-    >
-      <h2 className="text-xl font-bold">Agendar cita</h2>
-
-      <p className="mt-2 text-sm leading-6 text-gray-600">
-        Registra la fecha y hora de la prueba presencial que ya coordinaron por
-        WhatsApp. La fecha del evento de la clienta queda intacta.
-      </p>
-
-      <div className="mt-6 space-y-4">
-        <label className="block">
-          <span className="text-sm font-semibold text-gray-700">
-            Fecha de la prueba
-          </span>
-          <input
-            type="date"
-            value={appointmentDate}
-            onChange={(event) => setAppointmentDate(event.target.value)}
-            required
-            className="mt-2 w-full rounded-xl border px-4 py-3"
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-sm font-semibold text-gray-700">
-            Hora de la prueba
-          </span>
-          <input
-            type="time"
-            value={appointmentTime}
-            onChange={(event) => setAppointmentTime(event.target.value)}
-            required
-            className="mt-2 w-full rounded-xl border px-4 py-3"
-          />
-        </label>
-      </div>
-
-      <div className="mt-6 space-y-3">
-        <button
-          type="submit"
-          disabled={savingAppointment}
-          className="w-full rounded-xl bg-black py-3 font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {savingAppointment ? "Agendando..." : "Agendar cita"}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setShowSchedulePanel(false)}
-          disabled={savingAppointment}
-          className="w-full rounded-xl border py-3 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
-  </div>
-)}
-
-{showPinPanel && reservation.status === "appointment_scheduled" && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-    <form
-      onSubmit={handleValidatePin}
-      className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
-    >
-      <h2 className="text-xl font-bold">Validar codigo</h2>
-
-      <p className="mt-2 text-sm leading-6 text-gray-600">
-        Ingresa el PIN de 4 digitos que te muestra la clienta para confirmar la
-        reserva.
-      </p>
-
-      <label className="mt-6 block">
-        <span className="text-sm font-semibold text-gray-700">
-          PIN de la clienta
-        </span>
-        <input
-          type="text"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          pattern="[0-9]{4}"
-          maxLength={4}
-          value={pin}
-          onChange={(event) => {
-            setPin(event.target.value.replace(/\D/g, "").slice(0, 4));
-            setPinError(null);
-          }}
-          className="mt-2 w-full rounded-xl border px-4 py-3 text-center font-mono text-2xl font-bold tracking-[0.35em]"
-          aria-invalid={pinError ? "true" : "false"}
-          required
-        />
-      </label>
-
-      {pinError && (
-        <p className="mt-3 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
-          {pinError}
-        </p>
-      )}
-
-      <div className="mt-6 space-y-3">
-        <button
-          type="submit"
-          disabled={validatingPin}
-          className="w-full rounded-xl bg-black py-3 font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {validatingPin ? "Validando..." : "Confirmar reserva"}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => {
-            setShowPinPanel(false);
-            setPin("");
-            setPinError(null);
-          }}
-          disabled={validatingPin}
-          className="w-full rounded-xl border py-3 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
-  </div>
-)}
-
-  </main>
-);
 }
