@@ -9,13 +9,11 @@ import Link from "next/link";
 import {
   CalendarX2,
   ChevronDown,
-  Home,
   MessageSquareText,
   Plus,
-  Settings,
-  Shirt,
   UsersRound,
 } from "lucide-react";
+import DashboardNav from "@/app/components/DashboardNav";
 
 type ReservationStatus =
   | "pending"
@@ -425,7 +423,7 @@ const stats = useMemo(() => {
   return (
     <main className="min-h-screen bg-[var(--background)] px-4 py-5 text-[var(--foreground)] sm:px-8">
       <section className="mx-auto max-w-6xl">
-        <DashboardHomeNav />
+        <DashboardNav />
 
         <section className="mb-6 grid gap-3 rounded-[1.5rem] border border-[#ffd2e2] bg-white px-4 py-4 shadow-[0_14px_42px_rgba(255,45,126,0.07)] sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(520px,0.9fr)] lg:items-stretch">
           <div className="flex min-h-32 flex-col justify-center rounded-[1.2rem] border border-[#f4e3eb] bg-[#fff8fb] px-5 py-4 text-left sm:px-6">
@@ -482,54 +480,6 @@ const stats = useMemo(() => {
         )}
       </section>
     </main>
-  );
-}
-
-function DashboardHomeNav() {
-  const navItems = [
-    {
-      href: "/dashboard",
-      label: "Inicio",
-      icon: <Home />,
-      active: true,
-    },
-    {
-      href: "/dashboard/vestidos",
-      label: "Mis vestidos",
-      icon: <Shirt />,
-      active: false,
-    },
-    {
-      href: "/dashboard/reservas",
-      label: "Reservas",
-      icon: <CalendarX2 />,
-      active: false,
-    },
-    {
-      href: "/dashboard/configuracion",
-      label: "Configuración",
-      icon: <Settings />,
-      active: false,
-    },
-  ];
-
-  return (
-    <nav className="mb-5 flex items-center gap-2 overflow-x-auto border-b border-[#eadfe5] pb-3">
-      {navItems.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition ${
-            item.active
-              ? "bg-[#ffe7f0] text-[#ff2f78]"
-              : "text-[#302b33] hover:bg-white hover:text-[#ff2f78]"
-          }`}
-        >
-          <span className="[&_svg]:h-4 [&_svg]:w-4">{item.icon}</span>
-          {item.label}
-        </Link>
-      ))}
-    </nav>
   );
 }
 
