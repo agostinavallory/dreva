@@ -1,3 +1,5 @@
+import { CalendarDays } from "lucide-react";
+
 type Props = {
   status: string;
   eventDate?: string | null;
@@ -34,14 +36,14 @@ const NEXT_STEP: Record<
   appointment_scheduled: {
     title: "Cita programada",
     description:
-      "La clienta tiene una cita agendada. Cuando llegue al local, solicita su código de 4 dígitos para confirmar la entrega.",
+      "Cuando la clienta llegue al local, deberá presentar su código de 4 dígitos para validar la reserva.",
     button: "Validar código",
   },
 
   confirmed: {
-    title: "Reserva activa",
+    title: "Vestido entregado",
     description:
-      "El vestido ya fue entregado. Cuando la clienta lo devuelva, finaliza la reserva.",
+      "El vestido ya fue entregado. Cuando la clienta lo devuelva, la reserva quedará finalizada.",
     button: "Finalizar reserva",
   },
 
@@ -52,82 +54,41 @@ const NEXT_STEP: Record<
   },
 };
 
-function formatDate(date: string | null | undefined) {
-  if (!date) return null;
-
-  return new Date(date).toLocaleDateString("es-PY", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
-
 export default function ReservationNextStep({
   status,
-  eventDate,
-  appointmentDate,
-  dressName,
   onAction,
   actionDisabled = false,
   actionLabel,
 }: Props) {
   const step = NEXT_STEP[status];
-const formattedEventDate = formatDate(eventDate);
-const formattedAppointmentDate = formatDate(appointmentDate);
-
 
   if (!step) return null;
 
   return (
-    <div className="mt-8 rounded-2xl border bg-white p-6 shadow-sm">
+    <div className="mt-8 rounded-[1.5rem] border border-[#eee4e9] bg-white p-6 shadow-[0_14px_42px_rgba(38,31,36,0.06)] sm:p-8">
+      <div className="flex items-center gap-3">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#ffe7f0] text-[#ff2f78]">
+          <CalendarDays className="h-5 w-5" strokeWidth={2.25} />
+        </span>
+        <h2 className="text-xl font-extrabold leading-tight text-[#17151b] sm:text-2xl">
+          {step.title}
+        </h2>
+      </div>
 
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pink-600">
-        Siguiente paso
+      <p className="mt-5 text-sm leading-relaxed text-[#6d6670]">
+        {step.description}
       </p>
-
-      <h2 className="mt-3 text-2xl font-bold">
-  {step.title}
-</h2>
-
-<div className="mt-4 space-y-2 text-gray-600">
-
-  {dressName && (
-    <p>
-      <span className="font-semibold">Vestido:</span> {dressName}
-    </p>
-  )}
-
-  {status === "pending" && formattedEventDate && (
-    <p>
-      <span className="font-semibold">Evento:</span> {formattedEventDate}
-    </p>
-  )}
-
-  {status === "appointment_scheduled" &&
-    formattedAppointmentDate && (
-      <p>
-        <span className="font-semibold">Cita:</span>{" "}
-        {formattedAppointmentDate}
-      </p>
-    )}
-
-  <p className="leading-7">
-    {step.description}
-  </p>
-
-</div>
 
       {step.button && (
         <button
+          type="button"
           onClick={onAction}
           disabled={actionDisabled}
-          className="mt-6 rounded-xl bg-black px-5 py-3 text-white font-semibold hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-6 rounded-full bg-[#ff2f78] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(255,47,120,0.22)] transition hover:-translate-y-0.5 hover:bg-[#ef1f68] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {actionLabel ?? step.button}
         </button>
       )}
-
     </div>
   );
 }

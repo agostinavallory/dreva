@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
+import { Banknote, CalendarDays, Clock, Ticket, UserRound } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import ReservationNextStep from "@/app/components/ReservationNextStep";
 import ManageRequestPanel from "@/app/components/ManageRequestPanel";
@@ -61,6 +62,24 @@ const modalButtonClass =
 const cancelButtonClass =
   "w-full rounded-full border border-[#f3c7d6] bg-white px-5 py-3 text-sm font-bold text-[#d92f68] transition hover:bg-[#fff7fa] disabled:cursor-not-allowed disabled:opacity-60";
 
+function formatFullDate(date: Date) {
+  return new Intl.DateTimeFormat("es-PY", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+function formatFullTime(date: Date) {
+  return new Intl.DateTimeFormat("es-PY", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  }).format(date);
+}
+
 function formatDate(value: string | null) {
   if (!value) return "Sin definir";
 
@@ -78,10 +97,33 @@ function formatDate(value: string | null) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("es-PY", {
-    dateStyle: "medium",
-    timeStyle: simpleDate ? undefined : "short",
-  }).format(date);
+  return simpleDate
+    ? formatFullDate(date)
+    : `${formatFullDate(date)}, ${formatFullTime(date)}`;
+}
+
+function formatDateOnly(value: string | null) {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return formatFullDate(date);
+}
+
+function formatTimeOnly(value: string | null) {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return formatFullTime(date);
 }
 
 function formatPrice(value: number | null) {
@@ -384,6 +426,11 @@ export default function ReservationPage() {
   ].filter((item): item is { label: string; value: string } => item.value !== null);
 
   const dressImage = reservation.vestidos?.imagen;
+  const eventLabel = formatDate(reservation.event_date);
+  const appointmentDateLabel =
+    formatDateOnly(reservation.appointment_date) ?? "Sin definir";
+  const appointmentTimeLabel = formatTimeOnly(reservation.appointment_date);
+  const priceLabel = formatPrice(reservation.vestidos?.precio ?? null);
 
   return (
     <main className="min-h-screen bg-[var(--background)] px-4 py-5 text-[var(--foreground)] sm:px-8">
@@ -398,15 +445,15 @@ export default function ReservationPage() {
         </Link>
 
         <header className="mb-8 overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
-          <div className="grid md:grid-cols-[minmax(0,7fr)_minmax(0,13fr)]">
-            <div className="relative aspect-[4/4.65] min-h-48 md:aspect-auto md:min-h-full">
+          <div className="grid md:grid-cols-[150px_minmax(0,1fr)]">
+            <div className="relative min-h-48 md:min-h-full">
               {dressImage ? (
                 <Image
                   src={dressImage}
                   alt={reservation.vestidos?.nombre ?? "Vestido DREVA"}
                   fill
-                  sizes="(max-width: 768px) 100vw, 34vw"
-                  className="object-contain object-left"
+                  sizes="(max-width: 768px) 100vw, 150px"
+                  className="object-cover"
                 />
               ) : (
                 <div className="flex h-full min-h-48 w-full items-center justify-center bg-[#f4eef1] px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98]">
@@ -430,26 +477,90 @@ export default function ReservationPage() {
                   </span>
                 </div>
 
-                <div className="mt-4 grid gap-2 text-sm font-semibold leading-6 text-[#5d535c] sm:grid-cols-2">
-                  <p>
-                    <span className="text-[#9a8f98]">Evento:</span>{" "}
-                    {formatDate(reservation.event_date)}
-                  </p>
-                  <p>
-                    <span className="text-[#9a8f98]">Cita:</span>{" "}
-                    {formatDate(reservation.appointment_date)}
-                  </p>
-                  <p>
-                    <span className="text-[#9a8f98]">Precio:</span>{" "}
-                    Gs. {formatPrice(reservation.vestidos?.precio ?? null)}
-                  </p>
-                </div>
+                <div className="mt-5 grid gap-x-10 gap-y-5 sm:grid-cols-2">
+                  <div className="space-y-5">
+                    <div className="flex items-start gap-2.5">
+                      <Ticket
+                        className="mt-1 h-4 w-4 shrink-0 text-[#ff2f78]"
+                        strokeWidth={2.25}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#b08ba0]">
+                          Evento
+                        </p>
+                        <p className="mt-0.5 text-[15px] font-semibold leading-6 text-[#17151b]">
+                          {eventLabel}
+                        </p>
+                      </div>
+                    </div>
 
-                {clientName && (
-                  <p className="mt-2 text-sm font-semibold leading-6 text-[#6b626b]">
-                    <span className="text-[#9a8f98]">Clienta:</span> {clientName}
-                  </p>
-                )}
+                    <div className="flex items-start gap-2.5">
+                      <Banknote
+                        className="mt-1 h-4 w-4 shrink-0 text-[#ff2f78]"
+                        strokeWidth={2.25}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#b08ba0]">
+                          Precio
+                        </p>
+                        <p className="mt-0.5 text-[15px] font-semibold leading-6 text-[#17151b]">
+                          Gs. {priceLabel}
+                        </p>
+                      </div>
+                    </div>
+
+                    {clientName && (
+                      <div className="flex items-start gap-2.5">
+                        <UserRound
+                          className="mt-1 h-4 w-4 shrink-0 text-[#ff2f78]"
+                          strokeWidth={2.25}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#b08ba0]">
+                            Clienta
+                          </p>
+                          <p className="mt-0.5 text-[15px] font-semibold leading-6 text-[#17151b]">
+                            {clientName}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-5">
+                    <div className="flex items-start gap-2.5">
+                      <CalendarDays
+                        className="mt-1 h-4 w-4 shrink-0 text-[#ff2f78]"
+                        strokeWidth={2.25}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#b08ba0]">
+                          Cita
+                        </p>
+                        <p className="mt-0.5 text-[15px] font-semibold leading-6 text-[#17151b]">
+                          {appointmentDateLabel}
+                        </p>
+                      </div>
+                    </div>
+
+                    {appointmentTimeLabel && (
+                      <div className="flex items-start gap-2.5">
+                        <Clock
+                          className="mt-1 h-4 w-4 shrink-0 text-[#ff2f78]"
+                          strokeWidth={2.25}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#b08ba0]">
+                            Hora
+                          </p>
+                          <p className="mt-0.5 text-[15px] font-semibold leading-6 text-[#17151b]">
+                            {appointmentTimeLabel}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
