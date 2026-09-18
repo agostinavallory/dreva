@@ -46,6 +46,36 @@ function getErrorMessage(error: SupabaseErrorLike | null, fallback: string) {
   return message || fallback;
 }
 
+function formatDisplayDate(iso: string) {
+  const parts = iso.split("-");
+
+  if (parts.length !== 3) {
+    return iso;
+  }
+
+  const date = new Date(
+    Number(parts[0]),
+    Number(parts[1]) - 1,
+    Number(parts[2])
+  );
+
+  if (Number.isNaN(date.getTime())) {
+    return iso;
+  }
+
+  return new Intl.DateTimeFormat("es-PY", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+}
+
+const inputClass =
+  "w-full rounded-xl border border-[#eadfe5] bg-white px-4 py-3 text-[15px] font-medium text-[#17151b] outline-none transition placeholder:text-[#b3a9b0] focus:border-[#ff9ec2] focus:ring-4 focus:ring-[#ffe7f0]";
+
+const labelClass = "mb-1.5 block text-sm font-bold text-[#4f4951]";
+
 export default function DisponibilidadVestidoPage() {
   const { id } = useParams();
   const { user, loading: authLoading } = useAuth();
@@ -168,17 +198,29 @@ export default function DisponibilidadVestidoPage() {
   }
 
   if (loading || authLoading) {
-    return <main className="p-6">Cargando vestido...</main>;
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5">
+        <p className="text-sm font-medium text-[var(--muted)]">
+          Cargando vestido...
+        </p>
+      </main>
+    );
   }
 
   if (!vestido) {
-    return <main className="p-6">Vestido no encontrado</main>;
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5">
+        <p className="text-sm font-medium text-[var(--muted)]">
+          Vestido no encontrado
+        </p>
+      </main>
+    );
   }
 
   if (!canManage) {
     return (
-      <main className="max-w-4xl mx-auto p-6">
-        <p className="text-red-500">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5">
+        <p className="text-sm font-medium text-red-500">
           No tenés permiso para gestionar la disponibilidad de este vestido.
         </p>
       </main>
@@ -186,91 +228,114 @@ export default function DisponibilidadVestidoPage() {
   }
 
   return (
-    <main className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold">Disponibilidad</h1>
+    <main className="min-h-screen bg-[var(--background)] px-4 py-8 text-[var(--foreground)] sm:px-8">
+      <div className="mx-auto max-w-3xl">
+        <header className="mb-6">
+          <h1 className="text-2xl font-extrabold leading-tight text-[#17151b] sm:text-3xl">
+            Disponibilidad
+          </h1>
+          <p className="mt-1 text-sm font-semibold text-[#ff2f78]">
+            {vestido.nombre}
+          </p>
+          <p className="mt-1.5 text-sm font-medium leading-6 text-[#6d6670]">
+            Gestioná las fechas en las que este vestido no estará disponible.
+          </p>
+        </header>
 
-      <p className="text-gray-500 mt-1">{vestido.nombre}</p>
+        {/* FORMULARIO */}
+        <section className="rounded-[1.5rem] border border-[#eee4e9] bg-white p-6 shadow-[0_14px_42px_rgba(38,31,36,0.06)] sm:p-8">
+          <h2 className="text-xl font-extrabold leading-tight text-[#17151b]">
+            Bloquear fechas
+          </h2>
 
-      {/* FORMULARIO */}
-      <div className="mt-6 border rounded-xl p-4 space-y-3">
-        <h3 className="font-semibold">Agregar bloqueo</h3>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
+            <label className="block">
+              <span className={labelClass}>Fecha de inicio</span>
+              <input
+                type="date"
+                value={startDate}
+                min={todayIsoDate()}
+                onChange={(e) => setStartDate(e.target.value)}
+                className={inputClass}
+              />
+            </label>
 
-        <div>
-  <label className="text-sm font-medium text-gray-600">
-    Fecha de inicio
-  </label>
-  <input
-    type="date"
-    value={startDate}
-    min={todayIsoDate()}
-    onChange={(e) => setStartDate(e.target.value)}
-    className="border p-2 rounded w-full mt-1"
-  />
-</div>
+            <label className="block">
+              <span className={labelClass}>Fecha de fin</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className={inputClass}
+              />
+            </label>
 
-<div>
-  <label className="text-sm font-medium text-gray-600">
-    Fecha de fin
-  </label>
-  <input
-    type="date"
-    value={endDate}
-    onChange={(e) => setEndDate(e.target.value)}
-    className="border p-2 rounded w-full mt-1"
-  />
-</div>
-
-<div>
-  <label className="text-sm font-medium text-gray-600">
-    Motivo del bloqueo (opcional)
-  </label>
-  <input
-    type="text"
-    value={reason}
-    onChange={(e) => setReason(e.target.value)}
-    placeholder="Ej.: mantenimiento, reparación, reserva externa..."
-    className="border p-2 rounded w-full mt-1"
-  />
-</div>
-
-        {formError && (
-          <p className="text-sm text-red-500">{formError}</p>
-        )}
-
-        <button
-          onClick={createBlock}
-          className="bg-black text-white px-4 py-2 rounded"
-        >
-          Guardar bloqueo
-        </button>
-      </div>
-
-      {/* BLOQUEOS */}
-      <div className="mt-8">
-        <h2 className="font-semibold mb-3">Bloqueos actuales</h2>
-
-        {blocks.length === 0 ? (
-          <p className="text-gray-500">No hay fechas bloqueadas.</p>
-        ) : (
-          <div className="space-y-3">
-            {blocks.map((block) => (
-              <div key={block.id} className="border rounded-xl p-3">
-                <p className="font-medium">
-                  {block.start_date} → {block.end_date}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {block.reason || "Sin motivo"}
-                </p>
-                <button
-                  onClick={() => deleteBlock(block.id)}
-                  className="mt-2 text-sm text-red-500"
-                >
-                  Eliminar
-                </button>
-              </div>
-            ))}
+            <label className="block sm:col-span-2">
+              <span className={labelClass}>Motivo (opcional)</span>
+              <input
+                type="text"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Ej.: mantenimiento, reparación, reserva externa..."
+                className={inputClass}
+              />
+            </label>
           </div>
-        )}
+
+          {formError && (
+            <p className="mt-4 text-sm font-medium text-red-500">{formError}</p>
+          )}
+
+          <button
+            onClick={createBlock}
+            className="mt-6 rounded-full bg-[#ff2f78] px-6 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(255,47,120,0.22)] transition hover:-translate-y-0.5 hover:bg-[#ef1f68]"
+          >
+            Guardar bloqueo
+          </button>
+        </section>
+
+        {/* BLOQUEOS */}
+        <section className="mt-10 border-t border-[#eadce4] pt-8">
+          <h2 className="text-xl font-extrabold leading-tight text-[#17151b]">
+            Bloqueos actuales
+          </h2>
+
+          {blocks.length === 0 ? (
+            <div className="mt-4 rounded-[1.5rem] border border-dashed border-[#eadce4] bg-white/70 p-8 text-center">
+              <p className="text-[15px] font-bold text-[#17151b]">
+                No hay fechas bloqueadas
+              </p>
+              <p className="mt-1.5 text-sm leading-relaxed text-[#6d6670]">
+                Este vestido está disponible según las fechas registradas.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {blocks.map((block) => (
+                <div
+                  key={block.id}
+                  className="flex items-center justify-between gap-4 rounded-[1.2rem] border border-[#eee4e9] bg-white p-4 shadow-[0_8px_24px_rgba(38,31,36,0.05)]"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-bold text-[#17151b]">
+                      {formatDisplayDate(block.start_date)} →{" "}
+                      {formatDisplayDate(block.end_date)}
+                    </p>
+                    <p className="mt-1 truncate text-sm text-[#6d6670]">
+                      {block.reason || "Sin motivo"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => deleteBlock(block.id)}
+                    className="shrink-0 rounded-full border border-[#f3c2d2] bg-[#fff1f5] px-4 py-2 text-sm font-semibold text-[#c2185b] transition hover:bg-[#ffe1ea]"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </main>
   );
