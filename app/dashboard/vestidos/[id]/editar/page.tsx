@@ -24,6 +24,11 @@ const colorOptions = [
 const sizeOptions = ["XS", "S", "M", "L", "XL", "XXL"];
 const lengthOptions = ["Corto", "Midi", "Largo"];
 
+const inputClass =
+  "w-full rounded-xl border border-[#eadfe5] bg-white px-4 py-3.5 text-[15px] font-medium text-[#17151b] outline-none transition placeholder:text-[#b3a9b0] focus:border-[#ff9ec2] focus:ring-4 focus:ring-[#ffe7f0]";
+
+const labelClass = "mb-1.5 block text-sm font-bold text-[#4f4951]";
+
 export default function EditarVestidoPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -104,99 +109,137 @@ export default function EditarVestidoPage() {
   };
 
   if (loading) {
-    return <p className="p-6">Cargando vestido...</p>;
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5">
+        <p className="text-sm font-medium text-[var(--muted)]">
+          Cargando vestido...
+        </p>
+      </main>
+    );
   }
 
   return (
-    <main className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Editar Vestido</h1>
+    <main className="min-h-screen bg-[var(--background)] px-4 py-8 text-[var(--foreground)] sm:px-8">
+      <div className="mx-auto max-w-2xl">
+        <header className="mb-6">
+          <h1 className="text-2xl font-extrabold leading-tight text-[#17151b] sm:text-3xl">
+            Editar vestido
+          </h1>
+          <p className="mt-2 text-sm font-medium leading-6 text-[#6d6670]">
+            Actualizá la información de este vestido.
+          </p>
+        </header>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          name="nombre"
-          value={form.nombre}
-          onChange={handleChange}
-          placeholder="Nombre"
-          className="border rounded-lg p-3"
-        />
-
-        <input
-          name="precio"
-          value={form.precio}
-          onChange={handleChange}
-          placeholder="Precio"
-          className="border rounded-lg p-3"
-        />
-
-        <input
-          name="imagen"
-          value={form.imagen}
-          onChange={handleChange}
-          placeholder="URL imagen"
-          className="border rounded-lg p-3"
-        />
-
-        <textarea
-          name="descripcion"
-          value={form.descripcion}
-          onChange={handleChange}
-          placeholder="Descripción"
-          className="border rounded-lg p-3"
-          rows={4}
-        />
-
-        <select
-          name="color"
-          value={form.color}
-          onChange={handleChange}
-          className="border rounded-lg p-3"
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-[1.5rem] border border-[#eee4e9] bg-white p-6 shadow-[0_14px_42px_rgba(38,31,36,0.06)] sm:p-8"
         >
-          <option value="">Seleccionar color</option>
-          {colorOptions.map((color) => (
-            <option key={color} value={color}>
-              {color}
-            </option>
-          ))}
-        </select>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label className="block sm:col-span-2">
+              <span className={labelClass}>Nombre del vestido</span>
+              <input
+                name="nombre"
+                value={form.nombre}
+                onChange={handleChange}
+                placeholder="Nombre"
+                className={inputClass}
+              />
+            </label>
 
-        <select
-          name="talla"
-          value={form.talla}
-          onChange={handleChange}
-          className="border rounded-lg p-3"
-        >
-          <option value="">Seleccionar talla</option>
-          {sizeOptions.map((size) => (
-            <option key={size} value={size}>
-              {size}
-            </option>
-          ))}
-        </select>
+            <label className="block">
+              <span className={labelClass}>Precio de alquiler (Gs.)</span>
+              <input
+                name="precio"
+                value={form.precio}
+                onChange={handleChange}
+                placeholder="Precio"
+                className={inputClass}
+              />
+            </label>
 
-        <label className="text-sm font-medium text-gray-600">
-          Largo del vestido
-        </label>
-        <select
-          name="largo"
-          value={form.largo}
-          onChange={handleChange}
-          className="border rounded-lg p-3"
-        >
-          <option value="">Seleccionar largo</option>
-          {lengthOptions.map((length) => (
-            <option key={length} value={length}>
-              {length}
-            </option>
-          ))}
-        </select>
+            <label className="block">
+              <span className={labelClass}>Imagen del vestido</span>
+              <input
+                name="imagen"
+                value={form.imagen}
+                onChange={handleChange}
+                placeholder="URL imagen"
+                className={inputClass}
+              />
+            </label>
 
-        <button
-          type="submit"
-          className="bg-black text-white rounded-xl py-3"
-        >
-          Guardar cambios
-        </button>
-      </form>
+            <label className="block sm:col-span-2">
+              <span className={labelClass}>Descripción</span>
+              <textarea
+                name="descripcion"
+                value={form.descripcion}
+                onChange={handleChange}
+                placeholder="Descripción"
+                className={`${inputClass} min-h-28 resize-y`}
+                rows={4}
+              />
+            </label>
+
+            <label className="block">
+              <span className={labelClass}>Color</span>
+              <select
+                name="color"
+                value={form.color}
+                onChange={handleChange}
+                className={inputClass}
+              >
+                <option value="">Seleccionar color</option>
+                {colorOptions.map((color) => (
+                  <option key={color} value={color}>
+                    {color}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className={labelClass}>Talla</span>
+              <select
+                name="talla"
+                value={form.talla}
+                onChange={handleChange}
+                className={inputClass}
+              >
+                <option value="">Seleccionar talla</option>
+                {sizeOptions.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block sm:col-span-2">
+              <span className={labelClass}>Largo del vestido</span>
+              <select
+                name="largo"
+                value={form.largo}
+                onChange={handleChange}
+                className={inputClass}
+              >
+                <option value="">Seleccionar largo</option>
+                {lengthOptions.map((length) => (
+                  <option key={length} value={length}>
+                    {length}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            className="mt-8 w-full rounded-full bg-[#ff2f78] px-6 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(255,47,120,0.22)] transition hover:-translate-y-0.5 hover:bg-[#ef1f68]"
+          >
+            Guardar cambios
+          </button>
+        </form>
+      </div>
     </main>
   );
 }
