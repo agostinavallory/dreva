@@ -33,6 +33,7 @@ type Reservation = {
   } | null;
   locales?: {
     nombre?: string | null;
+    telefono_whatsapp?: string | null;
   } | null;
 };
 
@@ -46,9 +47,9 @@ type DressSummary = {
 
 type LocalSummary = {
   id?: string | null;
-  user_id?: string | null;
   owner_id?: string | null;
   nombre?: string | null;
+  telefono_whatsapp?: string | null;
 };
 
 const STATUS_LABELS: Record<ReservationStatus, string> = {
@@ -142,7 +143,15 @@ function whatsappHref(reservation: Reservation) {
     "Quisiera coordinar la cita de prueba con el local, por favor.",
   ].join(" ");
 
-  return `https://wa.me/?text=${encodeURIComponent(message)}`;
+  const encodedMessage = encodeURIComponent(message);
+  const phone = reservation.locales?.telefono_whatsapp?.replace(
+    /[\s\-()+]/g,
+    "",
+  );
+
+  return phone
+    ? `https://wa.me/${phone}?text=${encodedMessage}`
+    : `https://wa.me/?text=${encodedMessage}`;
 }
 
 export default function MyReservationsPage() {
@@ -269,12 +278,8 @@ export default function MyReservationsPage() {
     if (ownerIds.length > 0) {
       const { data: locales, error: localesError } = await supabase
         .from("locales")
-        .select("id,user_id,owner_id,nombre")
-        .or(
-          `id.in.(${ownerIds.join(",")}),user_id.in.(${ownerIds.join(
-            ",",
-          )}),owner_id.in.(${ownerIds.join(",")})`,
-        );
+        .select("id,owner_id,nombre,telefono_whatsapp")
+        .in("owner_id", ownerIds);
 
       if (localesError) {
         console.warn("[my-reservations] locales fallback unavailable", {
@@ -285,11 +290,9 @@ export default function MyReservationsPage() {
       } else {
         (locales || []).forEach((local) => {
           const summary = local as LocalSummary;
-          [summary.id, summary.user_id, summary.owner_id].forEach((id) => {
-            if (id) {
-              localMap.set(String(id), summary);
-            }
-          });
+          if (summary.owner_id) {
+            localMap.set(String(summary.owner_id), summary);
+          }
         });
         console.debug("[my-reservations] locales fallback loaded", {
           requested: ownerIds.length,

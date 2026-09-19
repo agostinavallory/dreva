@@ -13,6 +13,7 @@ type Local = {
   descripcion: string | null;
   ciudad: string | null;
   direccion: string | null;
+  telefono_whatsapp: string | null;
 };
 
 type SaveStatus = "idle" | "saving" | "success" | "error";
@@ -39,6 +40,7 @@ export default function ConfiguracionPage() {
     descripcion: "",
     ciudad: "",
     direccion: "",
+    telefono_whatsapp: "",
   });
 
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function ConfiguracionPage() {
           descripcion: data.descripcion ?? "",
           ciudad: data.ciudad ?? "",
           direccion: data.direccion ?? "",
+          telefono_whatsapp: data.telefono_whatsapp ?? "",
         });
       }
 
@@ -117,6 +120,7 @@ export default function ConfiguracionPage() {
         descripcion: form.descripcion,
         ciudad: form.ciudad,
         direccion: form.direccion,
+        telefono_whatsapp: form.telefono_whatsapp || null,
       })
       .eq("id", local.id);
 
@@ -188,6 +192,18 @@ export default function ConfiguracionPage() {
                 />
               </Field>
             </div>
+
+            <Field label="WhatsApp del local">
+              <input
+                type="tel"
+                className={inputClass}
+                value={form.telefono_whatsapp}
+                onChange={(e) =>
+                  setForm({ ...form, telefono_whatsapp: e.target.value })
+                }
+                placeholder="+595 9XX XXX XXX"
+              />
+            </Field>
           </div>
 
           {saveStatus === "success" && (
