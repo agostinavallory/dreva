@@ -10,6 +10,7 @@ import {
   ChevronRight,
   Heart,
   Home,
+  LogOut,
   Settings,
   ShieldCheck,
   UserRound,
@@ -61,7 +62,7 @@ function getInitials(profile: Profile | null, email?: string) {
 }
 
 export default function ProfilePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   const [loadedProfile, setLoadedProfile] = useState<LoadedProfile | null>(null);
   const email = user?.email;
   const profile =
@@ -221,6 +222,19 @@ export default function ProfilePage() {
           </div>
         </div>
       </section>
+
+      <div className="border-t border-[#eee4e9] pb-36 pt-6">
+        <div className="mx-auto w-full max-w-7xl px-5 sm:px-8">
+          <button
+            type="button"
+            onClick={signOut}
+            className="inline-flex items-center gap-2 rounded-full border border-[#eadfe5] bg-white px-5 py-2.5 text-sm font-semibold text-[#77727a] transition hover:border-[#f3c7d6] hover:text-[#d92f68]"
+          >
+            <LogOut className="h-4 w-4" strokeWidth={2} />
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
 
       <BottomProfileNav />
     </main>
