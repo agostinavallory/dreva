@@ -67,7 +67,6 @@ function formatFullDate(date: Date) {
     day: "numeric",
     month: "long",
     year: "numeric",
-    timeZone: "UTC",
   }).format(date);
 }
 
@@ -76,7 +75,6 @@ function formatFullTime(date: Date) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-    timeZone: "UTC",
   }).format(date);
 }
 
