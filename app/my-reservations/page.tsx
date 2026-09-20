@@ -97,6 +97,31 @@ function formatDate(value: string | null) {
   }).format(date);
 }
 
+function formatAppointmentDateTime(value: string | null) {
+  if (!value) {
+    return "Fecha por definir";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const dateLabel = new Intl.DateTimeFormat("es-PY", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+  const timeLabel = new Intl.DateTimeFormat("es-PY", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(date);
+
+  return `${dateLabel} · ${timeLabel}`;
+}
+
 function shouldShowPin(status: ReservationStatus) {
   return (
     status === "accepted" ||
@@ -708,7 +733,7 @@ function ReservationCard({
                 <div className="max-w-md rounded-2xl bg-sky-50 px-4 py-3">
                   <p className="text-xs font-semibold text-sky-700">Tu cita</p>
                   <p className="mt-1 text-sm font-semibold text-[var(--ink)]">
-                    {formatDate(reservation.appointment_date)}
+                    {formatAppointmentDateTime(reservation.appointment_date)}
                   </p>
                 </div>
               )}
