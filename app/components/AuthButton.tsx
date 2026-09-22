@@ -10,17 +10,22 @@ export function UserGreeting() {
     return null;
   }
 
+  const displayName =
+    user.user_metadata?.full_name?.trim() ||
+    user.user_metadata?.nombre?.trim() ||
+    user.email;
+
   return (
     <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow-sm border border-pink-100">
       <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--primary)] text-sm font-bold text-white">
-        {user.email?.charAt(0).toUpperCase()}
+        {displayName?.charAt(0).toUpperCase()}
       </div>
 
       <div className="hidden sm:block">
         <p className="text-xs text-gray-400">Bienvenida</p>
 
         <p className="max-w-[140px] truncate text-sm font-semibold text-[var(--ink)]">
-          {user.email}
+          {displayName}
         </p>
       </div>
     </div>

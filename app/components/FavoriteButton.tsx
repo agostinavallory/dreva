@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -23,6 +24,7 @@ function logFavoriteDebug(message: string, details: unknown) {
 
 export function FavoriteButton({ dressId }: Props) {
   const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const userId = user?.id;
   const normalizedDressId = normalizeDressId(dressId);
   const [loading, setLoading] = useState(true);
@@ -97,7 +99,7 @@ export function FavoriteButton({ dressId }: Props) {
     e.stopPropagation();
 
     if (!userId) {
-      alert("Debes iniciar sesión");
+      router.push("/login");
       return;
     }
 

@@ -1,4 +1,5 @@
 import { RequestDressButton } from '@/app/components/RequestDressButton';
+import { FavoriteButton } from '@/app/components/FavoriteButton';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
@@ -132,13 +133,16 @@ const { data: local } = await supabase
                 <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
                   Solicitud en DREVA
                 </p>
-                <RequestDressButton
-  dressId={Number(selectedDress?.id)}
-  ownerId={selectedDress?.owner_id ?? null}
-  dressName={selectedDress?.nombre ?? 'Vestido DREVA'}
-/>
+                <div className="flex items-center gap-3">
+                  <RequestDressButton
+                    dressId={Number(selectedDress?.id)}
+                    ownerId={selectedDress?.owner_id ?? null}
+                    dressName={selectedDress?.nombre ?? 'Vestido DREVA'}
+                  />
+                  <FavoriteButton dressId={selectedDress.id} />
+                </div>
               </div>
-             
+              
             </div>
           </div>
         </section>

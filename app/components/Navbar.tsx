@@ -63,7 +63,7 @@ export function Navbar() {
             Dashboard
           </Link>
         )}
-        {(!user || showLocalLinks) && (
+        {showLocalLinks && (
           <Link
             href="/favorites"
             className="text-sm font-medium text-gray-600 hover:text-black"
@@ -71,12 +71,14 @@ export function Navbar() {
             Favoritos
           </Link>
         )}
-        <Link
-          href="/profile"
-          className="text-sm font-medium text-gray-600 hover:text-black"
-        >
-          Perfil
-        </Link>
+        {user && (
+          <Link
+            href="/profile"
+            className="text-sm font-medium text-gray-600 hover:text-black"
+          >
+            Perfil
+          </Link>
+        )}
       </div>
     </nav>
   );
