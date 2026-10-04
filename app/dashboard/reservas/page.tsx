@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
 import DashboardNav from "@/app/components/DashboardNav";
+import { CalendarDays, ChevronDown, Search, Shirt } from "lucide-react";
 
 type ReservationStatus =
   | "pending"
@@ -34,19 +35,12 @@ type ClientProfile = {
   apellido: string;
 };
 
-const ACTIVE_STATUSES: ReservationStatus[] = [
-  "pending",
-  "accepted",
-  "appointment_scheduled",
-  "confirmed",
-];
-
 const STATUS_LABELS: Record<string, string> = {
-  pending: "Solicitud pendiente",
-  accepted: "Disponibilidad aceptada",
-  appointment_scheduled: "Cita programada",
-  confirmed: "Reserva confirmada",
-  completed: "Reserva completada",
+  pending: "Pendiente",
+  accepted: "Aceptada",
+  appointment_scheduled: "Cita agendada",
+  confirmed: "Confirmada",
+  completed: "Completada",
   cancelled: "Cancelada",
   expired: "Expirada",
 };
@@ -60,6 +54,26 @@ const STATUS_STYLES: Record<string, string> = {
   cancelled: "bg-rose-50 text-rose-700 border-rose-100",
   expired: "bg-zinc-100 text-zinc-600 border-zinc-200",
 };
+
+type StatusFilter = "all" | ReservationStatus;
+
+const STATUS_FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
+  { value: "all", label: "Todos" },
+  { value: "pending", label: "Pendiente" },
+  { value: "accepted", label: "Aceptada" },
+  { value: "appointment_scheduled", label: "Cita agendada" },
+  { value: "confirmed", label: "Confirmada" },
+  { value: "completed", label: "Completada" },
+  { value: "cancelled", label: "Cancelada" },
+  { value: "expired", label: "Expirada" },
+];
+
+type SortOrder = "nearest" | "farthest";
+
+const SORT_OPTIONS: { value: SortOrder; label: string }[] = [
+  { value: "nearest", label: "Fecha del evento (más próxima)" },
+  { value: "farthest", label: "Fecha del evento (más lejana)" },
+];
 
 function formatDate(value: string | null) {
   if (!value) return "Sin definir";
@@ -80,6 +94,23 @@ function formatDate(value: string | null) {
   }).format(date);
 }
 
+function eventDateTimestamp(value: string | null) {
+  if (!value) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const simpleDate = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const date = simpleDate
+    ? new Date(Number(simpleDate[1]), Number(simpleDate[2]) - 1, Number(simpleDate[3]))
+    : new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return date.getTime();
+}
+
 export default function ReservasDashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const userId = user?.id;
@@ -87,6 +118,9 @@ export default function ReservasDashboardPage() {
   const [clientMap, setClientMap] = useState<Map<string, ClientProfile>>(new Map());
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("nearest");
 
   const fetchClientProfile = useCallback(async (reservationId: string) => {
     const { data, error } = await supabase.rpc("get_reservation_client_profile", {
@@ -189,21 +223,6 @@ export default function ReservasDashboardPage() {
     };
   }, [authLoading, fetchClientProfile, fetchReservations, userId]);
 
-  const grouped = useMemo(() => {
-    const active: Reservation[] = [];
-    const history: Reservation[] = [];
-
-    reservations.forEach((reservation) => {
-      if (ACTIVE_STATUSES.includes(reservation.status)) {
-        active.push(reservation);
-      } else {
-        history.push(reservation);
-      }
-    });
-
-    return { active, history };
-  }, [reservations]);
-
   const getClientName = useCallback(
     (reservationId: string) => {
       const profile = clientMap.get(reservationId);
@@ -212,6 +231,44 @@ export default function ReservasDashboardPage() {
     },
     [clientMap],
   );
+
+  const visibleReservations = useMemo(() => {
+    const query = searchTerm.trim().toLocaleLowerCase();
+
+    const filtered = reservations.filter((reservation) => {
+      if (statusFilter !== "all" && reservation.status !== statusFilter) {
+        return false;
+      }
+
+      if (query) {
+        const clientName = getClientName(reservation.id) ?? "";
+        const vestidoName = reservation.vestidos?.nombre ?? "";
+        const haystack = `${clientName} ${vestidoName}`.toLocaleLowerCase();
+        if (!haystack.includes(query)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    return [...filtered].sort((a, b) => {
+      const aTimestamp = eventDateTimestamp(a.event_date);
+      const bTimestamp = eventDateTimestamp(b.event_date);
+
+      if (aTimestamp !== bTimestamp) {
+        if (aTimestamp === Number.POSITIVE_INFINITY) {
+          return 1;
+        }
+        if (bTimestamp === Number.POSITIVE_INFINITY) {
+          return -1;
+        }
+        return sortOrder === "nearest" ? aTimestamp - bTimestamp : bTimestamp - aTimestamp;
+      }
+
+      return (b.created_at ?? "").localeCompare(a.created_at ?? "");
+    });
+  }, [getClientName, reservations, searchTerm, sortOrder, statusFilter]);
 
   if (authLoading || loading) {
     return (
@@ -231,26 +288,13 @@ export default function ReservasDashboardPage() {
       <section className="mx-auto max-w-6xl">
         <DashboardNav />
 
-        <header className="mb-8 mt-2 flex flex-col gap-4 rounded-[1.5rem] border border-[#ffd2e2] bg-white px-5 py-6 shadow-[0_14px_42px_rgba(255,45,126,0.07)] sm:px-7">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#ff2f78]">
-            DREVA
+        <header className="mb-8 mt-2 rounded-[1.5rem] border border-[#ffd2e2] bg-white px-5 py-6 shadow-[0_14px_42px_rgba(255,45,126,0.07)] sm:px-7">
+          <h1 className="mt-2 text-2xl font-extrabold leading-tight text-[#17151b] sm:text-3xl">
+            Reservas
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#6d6670]">
+            Consultá todas las reservas de tus clientas.
           </p>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-extrabold leading-tight text-[#17151b] sm:text-3xl">
-                Reservas
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-[#6d6670]">
-                Consultá el estado de tus reservas activas y tu historial.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[#ffd8e6] bg-[#fff4f8] px-5 py-4">
-              <p className="text-2xl font-extrabold leading-none text-[#ff2f78]">
-                {grouped.active.length}
-              </p>
-              <p className="mt-1 text-xs font-bold text-[#6d6670]">Activas</p>
-            </div>
-          </div>
         </header>
 
         {errorMessage ? (
@@ -260,87 +304,152 @@ export default function ReservasDashboardPage() {
         ) : reservations.length === 0 ? (
           <div className="rounded-3xl border border-pink-100 bg-white p-8 text-center shadow-sm">
             <h2 className="text-xl font-extrabold text-[#17151b]">
-              Aún no tenés reservas
+              Todavía no tenés reservas.
             </h2>
             <p className="mx-auto mt-3 max-w-md text-sm font-medium leading-6 text-[#6d6670]">
-              Cuando una clienta reserve tus vestidos, las vas a ver acá.
+              Cuando una clienta solicite uno de tus vestidos, aparecerá acá.
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-12">
-            <ReservationSection
-              title="Activas"
-              description="Tus reservas en curso."
-              emptyMessage="No tenés reservas activas por ahora."
-              isSectionEmpty={grouped.active.length === 0}
-              count={grouped.active.length}
-            >
-              {grouped.active.map((reservation) => (
-                <ReservationCard
-                  key={reservation.id}
-                  reservation={reservation}
-                  clientName={getClientName(reservation.id)}
-                />
-              ))}
-            </ReservationSection>
+          <>
+            <ReservationFilters
+              searchTerm={searchTerm}
+              onSearchTermChange={setSearchTerm}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              sortOrder={sortOrder}
+              onSortOrderChange={setSortOrder}
+            />
 
-            <ReservationSection
-              title="Historial"
-              description="Reservas finalizadas, canceladas o expiradas."
-              emptyMessage="Aún no tenés historial."
-              isSectionEmpty={grouped.history.length === 0}
-              count={grouped.history.length}
-            >
-              {grouped.history.map((reservation) => (
-                <ReservationCard
-                  key={reservation.id}
-                  reservation={reservation}
-                  clientName={getClientName(reservation.id)}
-                />
-              ))}
-            </ReservationSection>
-          </div>
+            {visibleReservations.length === 0 ? (
+              <div className="rounded-3xl border border-dashed border-[#e6cdd8] bg-white p-8 text-center shadow-sm">
+                <p className="text-sm font-medium leading-6 text-[#9a8f98]">
+                  No se encontraron reservas con los filtros seleccionados.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {visibleReservations.map((reservation) => (
+                  <ReservationCard
+                    key={reservation.id}
+                    reservation={reservation}
+                    clientName={getClientName(reservation.id)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </section>
     </main>
   );
 }
 
-function ReservationSection({
-  title,
-  description,
-  emptyMessage,
-  isSectionEmpty,
-  count,
-  children,
+function ReservationFilters({
+  searchTerm,
+  onSearchTermChange,
+  statusFilter,
+  onStatusFilterChange,
+  sortOrder,
+  onSortOrderChange,
 }: {
-  title: string;
-  description: string;
-  emptyMessage: string;
-  isSectionEmpty: boolean;
-  count: number;
-  children: React.ReactNode;
+  searchTerm: string;
+  onSearchTermChange: (value: string) => void;
+  statusFilter: StatusFilter;
+  onStatusFilterChange: (value: StatusFilter) => void;
+  sortOrder: SortOrder;
+  onSortOrderChange: (value: SortOrder) => void;
 }) {
-  return (
-    <section>
-      <div className="mb-4 flex items-center justify-between gap-4 border-b border-[#eadfe5] pb-3">
-        <div>
-          <h2 className="text-xl font-extrabold text-[#17151b]">{title}</h2>
-          <p className="mt-1 text-sm font-medium text-[#6d6670]">{description}</p>
-        </div>
-        <span className="flex h-7 min-w-7 items-center justify-center rounded-full bg-[#ffe7f0] px-2 text-sm font-extrabold text-[#d92f68]">
-          {count}
-        </span>
-      </div>
+  const selectClass =
+    "w-full appearance-none rounded-full border border-[#eadfe5] bg-white py-2.5 pl-4 pr-10 text-sm font-semibold text-[#17151b] outline-none transition focus:border-[#ff9ec2] focus:ring-4 focus:ring-[#ffe7f0]";
 
-      {isSectionEmpty ? (
-        <p className="rounded-2xl border border-[#f1e4ea] bg-white px-5 py-6 text-center text-sm font-medium text-[#9a8f98]">
-          {emptyMessage}
-        </p>
-      ) : (
-        <div className="grid gap-4">{children}</div>
-      )}
-    </section>
+  return (
+    <div className="mb-6 rounded-[1.5rem] border border-[#ffd2e2] bg-white px-5 py-5 shadow-[0_14px_42px_rgba(255,45,126,0.07)] sm:px-7">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end">
+        <div className="min-w-0 flex-1">
+          <label
+            htmlFor="search-reservations"
+            className="block text-xs font-bold uppercase tracking-wide text-[#6d6670]"
+          >
+            Buscar
+          </label>
+          <div className="relative mt-2">
+            <Search
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#a49aa4]"
+              strokeWidth={2}
+            />
+            <input
+              id="search-reservations"
+              type="search"
+              value={searchTerm}
+              onChange={(event) => onSearchTermChange(event.target.value)}
+              placeholder="Buscar por clienta o vestido..."
+              className="w-full rounded-full border border-[#eadfe5] bg-white py-2.5 pl-10 pr-4 text-sm font-semibold text-[#17151b] outline-none transition placeholder:text-[#b3a9b0] focus:border-[#ff9ec2] focus:ring-4 focus:ring-[#ffe7f0]"
+            />
+          </div>
+        </div>
+
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:flex lg:items-end lg:gap-4">
+          <div className="min-w-0 sm:min-w-44">
+            <label
+              htmlFor="filter-status"
+              className="block text-xs font-bold uppercase tracking-wide text-[#6d6670]"
+            >
+              Estado
+            </label>
+            <div className="relative mt-2">
+              <select
+                id="filter-status"
+                value={statusFilter}
+                onChange={(event) =>
+                  onStatusFilterChange(event.target.value as StatusFilter)
+                }
+                className={selectClass}
+              >
+                {STATUS_FILTER_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9a8f98]"
+                strokeWidth={2}
+              />
+            </div>
+          </div>
+
+          <div className="min-w-0 sm:min-w-52">
+            <label
+              htmlFor="sort-order"
+              className="block text-xs font-bold uppercase tracking-wide text-[#6d6670]"
+            >
+              Ordenar por
+            </label>
+            <div className="relative mt-2">
+              <select
+                id="sort-order"
+                value={sortOrder}
+                onChange={(event) =>
+                  onSortOrderChange(event.target.value as SortOrder)
+                }
+                className={selectClass}
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9a8f98]"
+                strokeWidth={2}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -351,70 +460,60 @@ function ReservationCard({
   reservation: Reservation;
   clientName: string | null;
 }) {
-  const dressName = reservation.vestidos?.nombre ?? "Vestido DREVA";
-  const dressImage = reservation.vestidos?.imagen;
-  const hasAppointment = Boolean(reservation.appointment_date);
+  const vestidoName = reservation.vestidos?.nombre ?? "Vestido DREVA";
+  const vestidoImagen = reservation.vestidos?.imagen;
 
   return (
     <article className="overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
-      <div className="grid gap-0 md:grid-cols-[150px_minmax(0,1fr)]">
-        <div className="relative min-h-48 bg-[#fff4f8] md:min-h-full">
-          {dressImage ? (
+      <div className="grid gap-0 md:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="relative h-40 w-full shrink-0 overflow-hidden bg-[#fff4f8] md:h-auto md:min-h-full">
+          {vestidoImagen ? (
             <Image
-              src={dressImage}
-              alt={dressName}
+              src={vestidoImagen}
+              alt={vestidoName}
               fill
-              sizes="(max-width: 768px) 100vw, 150px"
+              sizes="(max-width: 767px) 100vw, 220px"
               className="object-cover"
             />
           ) : (
-            <div className="flex h-full min-h-48 items-center justify-center px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98]">
+            <div className="flex h-full min-h-40 items-center justify-center px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98]">
               Imagen del vestido no disponible
             </div>
           )}
         </div>
 
-        <div className="flex min-w-0 flex-col justify-between gap-5 p-5 sm:p-6">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <h3 className="text-xl font-extrabold leading-tight text-[#17151b]">
-                {dressName}
-              </h3>
-              <span
-                className={`inline-flex shrink-0 rounded-full border px-3 py-1 text-xs font-bold ${
-                  STATUS_STYLES[reservation.status]
-                }`}
-              >
-                {STATUS_LABELS[reservation.status]}
-              </span>
-            </div>
-
-            <div className="mt-4 grid gap-2 text-sm font-semibold leading-6 text-[#5d535c] sm:grid-cols-2">
-              <p>
-                <span className="text-[#9a8f98]">Evento:</span>{" "}
-                {formatDate(reservation.event_date)}
-              </p>
-              {hasAppointment ? (
-                <p>
-                  <span className="text-[#9a8f98]">Cita:</span>{" "}
-                  {formatDate(reservation.appointment_date)}
-                </p>
-              ) : null}
-            </div>
-
-            {clientName ? (
-              <p className="mt-2 text-sm font-semibold leading-6 text-[#6b626b]">
-                <span className="text-[#9a8f98]">Clienta:</span> {clientName}
-              </p>
-            ) : null}
+        <div className="flex min-w-0 flex-col p-5 sm:p-6">
+          <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+            <h3 className="truncate text-lg font-bold leading-tight text-[#17151b]">
+              {clientName ?? "Clienta sin registrar"}
+            </h3>
+            <span
+              className={`inline-flex shrink-0 rounded-full border px-3 py-1 text-xs font-bold ${
+                STATUS_STYLES[reservation.status]
+              }`}
+            >
+              {STATUS_LABELS[reservation.status]}
+            </span>
           </div>
 
-          <Link
-            href={`/dashboard/reservas/${reservation.id}`}
-            className="inline-flex w-full items-center justify-center rounded-full border border-[#f3c7d6] bg-white px-5 py-2.5 text-sm font-bold text-[#d92f68] transition hover:bg-[#fff7fa] sm:w-auto lg:min-w-40"
-          >
-            Ver reserva
-          </Link>
+          <p className="mt-3 flex min-w-0 items-center gap-2 text-sm font-semibold leading-6 text-[#5d535c]">
+            <Shirt className="h-4 w-4 shrink-0 text-[#ff2f78]" strokeWidth={2} />
+            <span className="truncate">{vestidoName}</span>
+          </p>
+
+          <p className="mt-1.5 flex items-center gap-2 text-sm font-semibold leading-6 text-[#5d535c]">
+            <CalendarDays className="h-4 w-4 shrink-0 text-[#ff2f78]" strokeWidth={2} />
+            <span>Evento: {formatDate(reservation.event_date)}</span>
+          </p>
+
+          <div className="mt-auto flex flex-col pt-6 sm:items-end">
+            <Link
+              href={`/dashboard/reservas/${reservation.id}`}
+              className="inline-flex w-full items-center justify-center rounded-full border border-[#f3c7d6] bg-white px-5 py-2.5 text-sm font-bold text-[#d92f68] transition hover:bg-[#fff7fa] sm:w-auto lg:min-w-40"
+            >
+              Ver reserva
+            </Link>
+          </div>
         </div>
       </div>
     </article>
