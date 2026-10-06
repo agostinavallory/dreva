@@ -8,13 +8,11 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   CalendarDays,
-  CalendarX2,
   ChevronDown,
   Clock,
   MessageSquareText,
   Plus,
   UserRound,
-  UsersRound,
 } from "lucide-react";
 import DashboardNav from "@/app/components/DashboardNav";
 
@@ -194,45 +192,6 @@ export default function DashboardPage() {
         );
       });
   }, [currentTime, reservations]);
-
-const stats = useMemo(() => {
-  const reservedStatuses: ReservationStatus[] = [
-    "accepted",
-    "appointment_scheduled",
-    "confirmed",
-  ];
-  const reservedDressIds = new Set<string>();
-
-  const summary = reservations.reduce(
-    (acc, reservation) => {
-      if (reservation.status === "pending") {
-        acc.pendingRequests += 1;
-      }
-
-      if (
-        reservedStatuses.includes(reservation.status) &&
-        reservation.dress_id !== null &&
-        reservation.dress_id !== undefined
-      ) {
-        reservedDressIds.add(String(reservation.dress_id));
-      }
-
-      acc.reservedDresses = reservedDressIds.size;
-
-      return acc;
-    },
-    {
-      pendingRequests: 0,
-      upcomingAppointments: 0,
-      reservedDresses: 0,
-    }
-  );
-
-  summary.upcomingAppointments = upcomingAppointments.length;
-
-  return summary;
-}, [reservations, upcomingAppointments.length]);
-
 
 
   const groupedReservations = useMemo(() => {
@@ -485,46 +444,19 @@ const stats = useMemo(() => {
       <section className="mx-auto max-w-6xl">
         <DashboardNav />
 
-        <section className="mb-6 grid gap-3 rounded-[1.5rem] border border-[#ffd2e2] bg-white px-4 py-4 shadow-[0_14px_42px_rgba(255,45,126,0.07)] sm:px-5 lg:grid-cols-[minmax(0,1fr)_minmax(520px,0.9fr)] lg:items-stretch">
-          <div className="flex min-h-32 flex-col justify-center rounded-[1.2rem] border border-[#f4e3eb] bg-[#fff8fb] px-5 py-4 text-left sm:px-6">
+        <section className="mb-8 pt-6 sm:pt-8">
+          <div className="flex flex-col items-center text-center">
             <h1 className="text-xl font-bold leading-tight text-[#17151b] sm:text-2xl">
               {localName ? `Hola, ${localName} ` : "Hola "}
               {"\uD83D\uDC4B"}
             </h1>
-            <p className="mt-2 max-w-md text-sm font-medium leading-6 text-[#6d6670]">
-              Hoy tenés {stats.pendingRequests} cosas por revisar.
-            </p>
-
             <Link
               href="/dashboard/vestidos/nuevo"
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#ff2f78] px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(255,47,120,0.22)] transition hover:-translate-y-0.5 hover:bg-[#ef1f68] sm:w-auto"
+              className="mt-4 inline-flex w-fit items-center justify-center gap-2 rounded-full bg-[#ff2f78] px-5 py-2.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(255,47,120,0.22)] transition hover:-translate-y-0.5 hover:bg-[#ef1f68]"
             >
               <Plus className="h-4 w-4" strokeWidth={2.5} />
               Publicar vestido
             </Link>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <Metric
-              icon={<MessageSquareText />}
-              title="Solicitudes"
-              value={stats.pendingRequests}
-              tone="border-[#ffd8e6] bg-[#fff4f8] text-[#ff2f78]"
-            />
-
-            <Metric
-              icon={<UsersRound />}
-              title="Próximas citas"
-              value={stats.upcomingAppointments}
-              tone="border-[#ccefe0] bg-[#f0fff8] text-[#35b779]"
-            />
-
-            <Metric
-              icon={<CalendarX2 />}
-              title="Vestidos apartados"
-              value={stats.reservedDresses}
-              tone="border-[#e4dcff] bg-[#f7f3ff] text-[#7d62d9]"
-            />
           </div>
         </section>
 
@@ -554,56 +486,6 @@ const stats = useMemo(() => {
         )}
       </section>
     </main>
-  );
-}
-
-function Metric({
-  icon,
-  title,
-  value,
-  tone,
-}: {
-  icon: ReactNode;
-  title: string;
-  value: number;
-  tone: string;
-}) {
-  return (
-    <div
-      className={`flex min-h-24 items-center gap-3 rounded-[1.1rem] border px-3.5 py-3 shadow-[0_10px_24px_rgba(38,31,36,0.045)] ${tone}`}
-    >
-      <IconBubble icon={icon} soft compact />
-      <div className="min-w-0">
-        <p className="text-2xl font-extrabold leading-none text-[#17151b]">
-          {value}
-        </p>
-        <h3 className="mt-1 text-sm font-bold leading-tight text-[#4f4951]">
-          {title}
-        </h3>
-      </div>
-    </div>
-  );
-}
-
-function IconBubble({
-  icon,
-  soft = false,
-  compact = false,
-}: {
-  icon: ReactNode;
-  soft?: boolean;
-  compact?: boolean;
-}) {
-  return (
-    <div
-      className={`flex shrink-0 items-center justify-center rounded-full ${
-        compact ? "h-9 w-9 [&_svg]:h-[18px] [&_svg]:w-[18px]" : "h-16 w-16 [&_svg]:h-8 [&_svg]:w-8"
-      } ${
-        soft ? "bg-white/60" : "bg-[#ffe7f0] text-[#ff2f78]"
-      }`}
-    >
-      {icon}
-    </div>
   );
 }
 
