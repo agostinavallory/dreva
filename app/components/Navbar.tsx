@@ -79,6 +79,14 @@ export function Navbar() {
             Perfil
           </Link>
         )}
+        {user && isLocal === false && (
+          <Link
+            href="/register/local"
+            className="text-sm font-medium text-gray-600 hover:text-black"
+          >
+            Tengo un local
+          </Link>
+        )}
       </div>
     </nav>
   );

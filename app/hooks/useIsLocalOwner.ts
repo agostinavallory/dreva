@@ -1,6 +1,10 @@
 import { supabase } from "@/lib/supabaseClient";
 
-export async function isLocalOwner(userId: string): Promise<boolean> {
+export type LocaleStatus =
+  | { ok: true; hasLocale: boolean }
+  | { ok: false };
+
+export async function getLocaleStatus(userId: string): Promise<LocaleStatus> {
   try {
     const { data, error } = await supabase
       .from("locales")
@@ -8,12 +12,15 @@ export async function isLocalOwner(userId: string): Promise<boolean> {
       .eq("owner_id", userId)
       .maybeSingle();
 
-    if (error) {
-      return false;
-    }
+    if (error) return { ok: false };
 
-    return Boolean(data);
+    return { ok: true, hasLocale: Boolean(data) };
   } catch {
-    return false;
+    return { ok: false };
   }
+}
+
+export async function isLocalOwner(userId: string): Promise<boolean> {
+  const status = await getLocaleStatus(userId);
+  return status.ok && status.hasLocale;
 }

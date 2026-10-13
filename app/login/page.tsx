@@ -47,7 +47,17 @@ export default function LoginPage() {
 
     const isLocal = await isLocalOwner(loggedUser.id);
 
-    router.push(isLocal ? "/dashboard" : "/");
+    if (isLocal) {
+      router.push("/dashboard");
+      return;
+    }
+
+    if (loggedUser.user_metadata?.role === "local") {
+      router.push("/register/local");
+      return;
+    }
+
+    router.push("/");
   }
 
   return (
