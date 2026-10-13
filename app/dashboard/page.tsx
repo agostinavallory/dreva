@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
-import Image from "next/image";
+import { DressImage } from "@/app/components/DressImage";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -667,19 +667,18 @@ function PendingRequestCard({
     <article className="overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_18px_55px_rgba(38,31,36,0.07)]">
       <div className="grid gap-0 md:grid-cols-[240px_minmax(0,1fr)]">
         <div className="relative h-44 w-full shrink-0 overflow-hidden bg-[#fff4f8] md:h-auto md:min-h-[200px] md:w-60">
-          {dressImage ? (
-            <Image
-              src={dressImage}
-              alt={dressName}
-              fill
-              sizes="(max-width: 767px) 100vw, 240px"
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full min-h-44 items-center justify-center px-6 text-center text-sm font-semibold leading-6 text-[#9a8f98] md:min-h-[200px]">
-              Imagen del vestido no disponible
-            </div>
-          )}
+          <DressImage
+            src={dressImage}
+            alt={dressName}
+            fill
+            sizes="(max-width: 767px) 100vw, 240px"
+            className="object-cover"
+            fallback={
+              <div className="flex h-full min-h-44 items-center justify-center px-6 text-center text-sm font-semibold leading-6 text-[#9a8f98] md:min-h-[200px]">
+                Imagen del vestido no disponible
+              </div>
+            }
+          />
         </div>
 
         <div className="flex min-w-0 flex-col p-5 sm:p-6">
@@ -751,19 +750,18 @@ function WaitingContactCard({
     <article className="overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
       <div className="grid gap-0 md:grid-cols-[240px_minmax(0,1fr)]">
         <div className="relative h-44 w-full shrink-0 overflow-hidden bg-[#fffaf0] md:h-auto md:min-h-[200px] md:w-60">
-          {dressImage ? (
-            <Image
-              src={dressImage}
-              alt={dressName}
-              fill
-              sizes="(max-width: 767px) 100vw, 240px"
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full min-h-44 items-center justify-center px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98] md:min-h-[200px]">
-              Imagen del vestido no disponible
-            </div>
-          )}
+          <DressImage
+            src={dressImage}
+            alt={dressName}
+            fill
+            sizes="(max-width: 767px) 100vw, 240px"
+            className="object-cover"
+            fallback={
+              <div className="flex h-full min-h-44 items-center justify-center px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98] md:min-h-[200px]">
+                Imagen del vestido no disponible
+              </div>
+            }
+          />
         </div>
 
         <div className="flex min-w-0 flex-col p-5 sm:p-6">
@@ -838,19 +836,18 @@ function NextAppointmentCard({
     <article className="overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
       <div className="grid gap-0 md:grid-cols-[240px_minmax(0,1fr)]">
         <div className="relative h-44 w-full shrink-0 overflow-hidden bg-[#f2fff8] md:h-auto md:min-h-[200px] md:w-60">
-          {dressImage ? (
-            <Image
-              src={dressImage}
-              alt={dressName}
-              fill
-              sizes="(max-width: 767px) 100vw, 240px"
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full min-h-44 items-center justify-center px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98] md:min-h-[200px]">
-              Imagen del vestido no disponible
-            </div>
-          )}
+          <DressImage
+            src={dressImage}
+            alt={dressName}
+            fill
+            sizes="(max-width: 767px) 100vw, 240px"
+            className="object-cover"
+            fallback={
+              <div className="flex h-full min-h-44 items-center justify-center px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98] md:min-h-[200px]">
+                Imagen del vestido no disponible
+              </div>
+            }
+          />
         </div>
 
         <div className="flex min-w-0 flex-col p-5 sm:p-6">

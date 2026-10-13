@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { DressImage as SharedDressImage } from "@/app/components/DressImage";
 import Link from "next/link";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -846,20 +846,19 @@ function DressImage({
 }) {
   return (
     <div className={`relative overflow-hidden bg-pink-50 ${className}`}>
-      {image ? (
-        <Image
-          src={image}
-          alt={dressName}
-          fill
-          priority={priority}
-          sizes={sizes}
-          className="object-cover"
-        />
-      ) : (
-        <div className="grid h-full place-items-center text-lg font-semibold tracking-[0.32em] text-[var(--primary)]">
-          DREVA
-        </div>
-      )}
+      <SharedDressImage
+        src={image}
+        alt={dressName}
+        fill
+        priority={priority}
+        sizes={sizes}
+        className="object-cover"
+        fallback={
+          <div className="grid h-full place-items-center text-lg font-semibold tracking-[0.32em] text-[var(--primary)]">
+            DREVA
+          </div>
+        }
+      />
     </div>
   );
 }

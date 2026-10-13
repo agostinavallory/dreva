@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { DressImage } from "@/app/components/DressImage";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -330,19 +330,18 @@ function HistoryCard({ reservation }: { reservation: HistoryReservation }) {
   return (
     <article className="flex gap-3 rounded-[1.25rem] border border-[#eee4e9] bg-white p-3 shadow-[0_8px_26px_rgba(43,43,43,0.05)] sm:gap-4 sm:p-4">
       <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-pink-50 sm:h-28 sm:w-24">
-        {reservation.vestidos?.imagen ? (
-          <Image
-            src={reservation.vestidos.imagen}
-            alt={dressName}
-            fill
-            sizes="96px"
-            className="object-cover"
-          />
-        ) : (
-          <div className="grid h-full place-items-center text-xs font-semibold tracking-[0.3em] text-[#ff2f78]">
-            DREVA
-          </div>
-        )}
+        <DressImage
+          src={reservation.vestidos?.imagen}
+          alt={dressName}
+          fill
+          sizes="96px"
+          className="object-cover"
+          fallback={
+            <div className="grid h-full place-items-center text-xs font-semibold tracking-[0.3em] text-[#ff2f78]">
+              DREVA
+            </div>
+          }
+        />
       </div>
 
       <div className="min-w-0 flex-1 py-0.5">

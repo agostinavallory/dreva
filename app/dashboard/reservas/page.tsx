@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { DressImage } from "@/app/components/DressImage";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
 import DashboardNav from "@/app/components/DashboardNav";
@@ -467,19 +467,18 @@ function ReservationCard({
     <article className="overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
       <div className="grid gap-0 md:grid-cols-[220px_minmax(0,1fr)]">
         <div className="relative h-40 w-full shrink-0 overflow-hidden bg-[#fff4f8] md:h-auto md:min-h-full">
-          {vestidoImagen ? (
-            <Image
-              src={vestidoImagen}
-              alt={vestidoName}
-              fill
-              sizes="(max-width: 767px) 100vw, 220px"
-              className="object-cover"
-            />
-          ) : (
-            <div className="flex h-full min-h-40 items-center justify-center px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98]">
-              Imagen del vestido no disponible
-            </div>
-          )}
+          <DressImage
+            src={vestidoImagen}
+            alt={vestidoName}
+            fill
+            sizes="(max-width: 767px) 100vw, 220px"
+            className="object-cover"
+            fallback={
+              <div className="flex h-full min-h-40 items-center justify-center px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98]">
+                Imagen del vestido no disponible
+              </div>
+            }
+          />
         </div>
 
         <div className="flex min-w-0 flex-col p-5 sm:p-6">

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
+import { DressImage } from "@/app/components/DressImage";
 import { supabase } from "@/lib/supabaseClient";
 
 type Local = {
@@ -89,7 +89,7 @@ const { data: vestidosData } = await supabase
         {vestidos.map((v) => (
           <div key={v.id} className="border rounded-xl overflow-hidden">
             {v.imagen && (
-              <Image
+              <DressImage
                 src={v.imagen}
                 alt={v.nombre}
                 width={400}

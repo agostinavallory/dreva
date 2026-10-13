@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { DressImage } from "@/app/components/DressImage";
 import { useParams } from "next/navigation";
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -445,19 +445,18 @@ export default function ReservationPage() {
         <header className="mb-8 overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
           <div className="grid md:grid-cols-[150px_minmax(0,1fr)]">
             <div className="relative min-h-48 md:min-h-full">
-              {dressImage ? (
-                <Image
-                  src={dressImage}
-                  alt={reservation.vestidos?.nombre ?? "Vestido DREVA"}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 150px"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="flex h-full min-h-48 w-full items-center justify-center bg-[#f4eef1] px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98]">
-                  Imagen del vestido no disponible
-                </div>
-              )}
+              <DressImage
+                src={dressImage}
+                alt={reservation.vestidos?.nombre ?? "Vestido DREVA"}
+                fill
+                sizes="(max-width: 768px) 100vw, 150px"
+                className="object-cover"
+                fallback={
+                  <div className="flex h-full min-h-48 w-full items-center justify-center bg-[#f4eef1] px-5 text-center text-sm font-semibold leading-6 text-[#9a8f98]">
+                    Imagen del vestido no disponible
+                  </div>
+                }
+              />
             </div>
 
             <div className="flex min-w-0 flex-col justify-between gap-5 p-5 sm:p-6">

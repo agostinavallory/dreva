@@ -1,7 +1,7 @@
 import { RequestDressButton } from '@/app/components/RequestDressButton';
 import { FavoriteButton } from '@/app/components/FavoriteButton';
 import Link from 'next/link';
-import Image from 'next/image';
+import { DressImage } from '@/app/components/DressImage';
 import { supabase } from '@/lib/supabaseClient';
 import type { Dress } from '@/app/page';
 
@@ -68,20 +68,19 @@ const { data: local } = await supabase
 
         <section className="grid gap-8 rounded-3xl border border-pink-100 bg-white p-5 shadow-[0_24px_80px_rgba(255,92,168,0.12)] lg:grid-cols-[1.05fr_0.95fr] lg:p-8">
           <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-pink-50">
-            {selectedDress?.imagen ? (
-              <Image
-                alt={selectedDress.nombre ?? 'Vestido DREVA'}
-               className="object-cover"
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                src={selectedDress.imagen}
-              />
-            ) : (
-              <div className="grid h-full place-items-center bg-[linear-gradient(135deg,#FFF1F7,#F7E8FF)] text-3xl font-semibold tracking-[0.38em] text-[var(--primary)]">
-                DREVA
-              </div>
-            )}
+            <DressImage
+              alt={selectedDress?.nombre ?? 'Vestido DREVA'}
+              className="object-cover"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              src={selectedDress?.imagen}
+              fallback={
+                <div className="grid h-full place-items-center bg-[linear-gradient(135deg,#FFF1F7,#F7E8FF)] text-3xl font-semibold tracking-[0.38em] text-[var(--primary)]">
+                  DREVA
+                </div>
+              }
+            />
           </div>
 
           <div className="flex flex-col justify-center">
