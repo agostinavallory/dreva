@@ -134,6 +134,25 @@ if (manualBlocks && manualBlocks.length > 0) {
   return;
 }
 
+    const { data: dressStatus, error: dressStatusError } = await supabase
+      .from("vestidos")
+      .select("activo")
+      .eq("id", dressId)
+      .maybeSingle();
+
+    if (dressStatusError) {
+      console.error("[DREVA reservations] dress status check error", dressStatusError);
+      alert("No pudimos verificar la disponibilidad del vestido. Intenta de nuevo.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (!dressStatus || dressStatus.activo !== true) {
+      alert("Este vestido ya no está disponible para nuevas solicitudes.");
+      setSubmitting(false);
+      return;
+    }
+
     const pin = generateClientPin();
     const { error } = await supabase.from("reservations").insert({
       dress_id: dressId,

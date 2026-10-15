@@ -44,7 +44,8 @@ setLocal(localData);
 const { data: vestidosData } = await supabase
   .from("vestidos")
   .select("*")
-  .eq("owner_id", localData.owner_id);
+  .eq("owner_id", localData.owner_id)
+  .eq("activo", true);
 
       setVestidos(vestidosData || []);
 

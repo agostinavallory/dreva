@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Pencil, Plus, Shirt } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { DeleteButton } from "@/app/components/DeleteButton";
+import { VestidoStatusButton } from "@/app/components/DeleteButton";
 import DashboardNav from "@/app/components/DashboardNav";
 import { useAuth } from "@/app/providers/AuthProvider";
 
@@ -14,6 +14,7 @@ type Vestido = {
   color: string | null;
   precio: number | string | null;
   imagen: string | null;
+  activo: boolean;
 };
 
 export default function VestidosDashboardPage() {
@@ -35,6 +36,16 @@ export default function VestidosDashboardPage() {
 
     return (data || []) as Vestido[];
   }, []);
+
+  const reloadVestidos = useCallback(async () => {
+    if (!userId) {
+      setVestidos([]);
+      return;
+    }
+
+    const data = await fetchVestidos(userId);
+    setVestidos(data);
+  }, [fetchVestidos, userId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -142,9 +153,17 @@ export default function VestidosDashboardPage() {
 
                 {/* INFO */}
                 <div className="flex flex-col p-4">
-                  <h3 className="truncate text-base font-semibold text-[#2b2830]">
-                    {v.nombre}
-                  </h3>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="truncate text-base font-semibold text-[#2b2830]">
+                      {v.nombre}
+                    </h3>
+
+                    {!v.activo && (
+                      <span className="shrink-0 rounded-full border border-[#e2dde1] bg-[#f4f1f3] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-[#8a828a]">
+                        Inactivo
+                      </span>
+                    )}
+                  </div>
 
                   <p className="mt-1 truncate text-sm font-medium text-[#5f5961]">
                     {v.color || "Color no especificado"}
@@ -173,7 +192,11 @@ export default function VestidosDashboardPage() {
                     </Link>
 
                     <span className="flex items-center justify-center py-1">
-                      <DeleteButton id={v.id} />
+                      <VestidoStatusButton
+                        id={v.id}
+                        activo={v.activo}
+                        onChanged={reloadVestidos}
+                      />
                     </span>
                   </div>
                 </div>

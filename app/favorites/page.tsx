@@ -39,6 +39,7 @@ export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Dress[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [hasStoredFavorites, setHasStoredFavorites] = useState(false);
 
   useEffect(() => {
     if (authLoading) {
@@ -83,6 +84,8 @@ export default function FavoritesPage() {
 
       const ids = normalizeFavoriteDressIds(favoriteRows);
 
+      setHasStoredFavorites(ids.length > 0);
+
       logFavoritesDebug("normalized dress ids", ids);
 
       if (ids.length === 0) {
@@ -94,7 +97,8 @@ export default function FavoritesPage() {
       const { data: dresses, error: dressesError } = await supabase
         .from("vestidos")
         .select("*")
-        .in("id", ids);
+        .in("id", ids)
+        .eq("activo", true);
 
       logFavoritesDebug("vestidos select result", {
         ids,
@@ -168,12 +172,27 @@ export default function FavoritesPage() {
           </div>
         ) : favorites.length === 0 ? (
           <div className="rounded-3xl border border-pink-100 bg-white p-7 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold text-[var(--ink)]">
-              Todavía no tenés vestidos favoritos.
-            </h2>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
-              Guardá los vestidos que te encantan para encontrarlos rápido.
-            </p>
+            {hasStoredFavorites ? (
+              <>
+                <h2 className="text-2xl font-semibold text-[var(--ink)]">
+                  Tus vestidos favoritos no están disponibles actualmente.
+                </h2>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
+                  Guardaste estos vestidos, pero ahora no están publicados. Tus
+                  favoritos se conservan y volverás a verlos cuando estén
+                  disponibles.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="text-2xl font-semibold text-[var(--ink)]">
+                  Todavía no tenés vestidos favoritos.
+                </h2>
+                <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
+                  Guardá los vestidos que te encantan para encontrarlos rápido.
+                </p>
+              </>
+            )}
             <Link
               href="/"
               className="mt-6 inline-flex rounded-2xl bg-black px-5 py-3 text-sm font-semibold text-white transition hover:opacity-80"

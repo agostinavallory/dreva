@@ -20,13 +20,13 @@ export default async function DetailPage(props: PageProps<'/detalle/[id]'>) {
   const { id } = await props.params;
   const { data: dress } = await supabase
     .from('vestidos')
-    .select('id,nombre,precio,imagen,descripcion,talla,color,owner_id')
+    .select('id,nombre,precio,imagen,descripcion,talla,color,owner_id,activo')
     .eq('id', id)
     .maybeSingle();
 
   const selectedDress = dress as Dress | null;
 
-  if (!selectedDress) {
+  if (!selectedDress || selectedDress.activo === false) {
     return (
       <main className="min-h-screen bg-[var(--background)] px-5 py-8 text-[var(--foreground)] sm:px-8">
         <div className="mx-auto max-w-3xl rounded-3xl border border-pink-100 bg-white p-8 text-center shadow-[0_24px_80px_rgba(255,92,168,0.12)]">
