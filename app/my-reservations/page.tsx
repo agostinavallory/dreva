@@ -30,7 +30,7 @@ type Reservation = {
   status: ReservationStatus;
   event_date: string | null;
   appointment_date: string | null;
-  client_pin: string | null;
+  client_pin?: string | null;
   created_at?: string | null;
   dress_id?: number | string | null;
   owner_id?: string | null;
@@ -46,6 +46,11 @@ type Reservation = {
 };
 
 type BaseReservation = Omit<Reservation, "vestidos" | "locales">;
+
+type ReservationPinRow = {
+  reservation_id: string;
+  client_pin: string | null;
+};
 
 type DressSummary = {
   id: number | string;
@@ -220,6 +225,7 @@ export default function MyReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [pinLoadFailed, setPinLoadFailed] = useState(false);
   const [openSections, setOpenSections] = useState<Record<string, boolean> | null>(
     null,
   );
@@ -296,7 +302,6 @@ export default function MyReservationsPage() {
         status,
         event_date,
         appointment_date,
-        client_pin,
         created_at,
         dress_id,
         owner_id
@@ -319,7 +324,7 @@ export default function MyReservationsPage() {
     });
 
     if (reservations.length === 0) {
-      return [];
+      return { reservations: [] as Reservation[], pinLoadFailed: false };
     }
 
     const dressIds = Array.from(
@@ -390,7 +395,7 @@ export default function MyReservationsPage() {
       }
     }
 
-    return reservations.map((reservation) => ({
+    const mergedReservations = reservations.map((reservation) => ({
       ...reservation,
       vestidos: reservation.dress_id
         ? (dressMap.get(String(reservation.dress_id)) ?? null)
@@ -399,6 +404,39 @@ export default function MyReservationsPage() {
         ? (localMap.get(String(reservation.owner_id)) ?? null)
         : null,
     })) as Reservation[];
+
+    let pinLoadFailed = false;
+
+    try {
+      const { data: pinRows, error: pinError } = await supabase.rpc(
+        "get_my_reservation_pins",
+      );
+
+      if (pinError) {
+        pinLoadFailed = true;
+        console.warn("[my-reservations] pin fetch unavailable", {
+          message: pinError.message,
+          code: pinError.code,
+        });
+      } else {
+        const pinMap = new Map<string, string | null>();
+
+        ((pinRows || []) as ReservationPinRow[]).forEach((row) => {
+          if (row && row.reservation_id) {
+            pinMap.set(String(row.reservation_id), row.client_pin ?? null);
+          }
+        });
+
+        mergedReservations.forEach((reservation) => {
+          reservation.client_pin = pinMap.get(String(reservation.id)) ?? null;
+        });
+      }
+    } catch {
+      pinLoadFailed = true;
+      console.warn("[my-reservations] pin fetch unavailable");
+    }
+
+    return { reservations: mergedReservations, pinLoadFailed };
   }, []);
 
   useEffect(() => {
@@ -417,15 +455,18 @@ export default function MyReservationsPage() {
 
       setLoading(true);
       setErrorMessage(null);
+      setPinLoadFailed(false);
 
       try {
-        const data = await fetchReservations(userId);
+        const { reservations: data, pinLoadFailed: pinFailed } =
+          await fetchReservations(userId);
 
         if (cancelled) {
           return;
         }
 
         setReservations(data);
+        setPinLoadFailed(pinFailed);
       } catch {
         if (!cancelled) {
           setErrorMessage("No pudimos cargar tus reservas en este momento.");
@@ -519,6 +560,7 @@ export default function MyReservationsPage() {
                     reservation={reservation}
                     priority={index === 0}
                     variant="pending"
+                    pinLoadFailed={pinLoadFailed}
                   />
                 ))}
               </ReservationSection>
@@ -538,6 +580,7 @@ export default function MyReservationsPage() {
                     reservation={reservation}
                     priority={index === 0}
                     variant="action"
+                    pinLoadFailed={pinLoadFailed}
                   />
                 ))}
               </ReservationSection>
@@ -557,6 +600,7 @@ export default function MyReservationsPage() {
                     reservation={reservation}
                     priority={false}
                     variant="action"
+                    pinLoadFailed={pinLoadFailed}
                   />
                 ))}
               </ReservationSection>
@@ -576,6 +620,7 @@ export default function MyReservationsPage() {
                     reservation={reservation}
                     priority={false}
                     variant="confirmed"
+                    pinLoadFailed={pinLoadFailed}
                   />
                 ))}
               </ReservationSection>
@@ -666,10 +711,12 @@ function ReservationCard({
   reservation,
   priority,
   variant,
+  pinLoadFailed,
 }: {
   reservation: Reservation;
   priority: boolean;
   variant: "action" | "confirmed" | "pending";
+  pinLoadFailed: boolean;
 }) {
   const dressName = reservation.vestidos?.nombre ?? "Vestido DREVA";
   const localName = reservation.locales?.nombre ?? "Confirmando local";
@@ -796,6 +843,10 @@ function ReservationCard({
                 <div className="flex min-w-0 items-start justify-center md:justify-end">
                   <PinBlock large pin={reservation.client_pin} />
                 </div>
+              ) : shouldShowPin(reservation.status) && pinLoadFailed ? (
+                <div className="flex min-w-0 items-start justify-center md:justify-end">
+                  <PinUnavailableBlock large />
+                </div>
               ) : null}
             </div>
           ) : (
@@ -910,6 +961,26 @@ function PinBlock({ pin, large = false }: { pin: string; large?: boolean }) {
       </p>
       <p className="mt-1 text-xs font-medium text-[#6f6971]">
         Muestralo en el local.
+      </p>
+    </div>
+  );
+}
+
+function PinUnavailableBlock({ large = false }: { large?: boolean }) {
+  return (
+    <div
+      className={`w-full rounded-2xl border-2 border-[#ffd4e2] bg-[#fff7fa] text-center shadow-[0_6px_20px_rgba(255,47,120,0.06)] ${
+        large ? "max-w-[22rem] px-6 py-5" : "max-w-xs px-5 py-4"
+      }`}
+    >
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff2f78]">
+        Tu PIN
+      </p>
+      <p className="mt-1.5 text-sm font-semibold text-[#252329]">
+        No pudimos cargar tu PIN en este momento.
+      </p>
+      <p className="mt-1 text-xs font-medium text-[#6f6971]">
+        Recargá la página para intentarlo de nuevo.
       </p>
     </div>
   );
