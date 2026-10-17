@@ -136,6 +136,14 @@ function formatPrice(value: number | null) {
   return new Intl.NumberFormat("es-PY").format(value);
 }
 
+function localTodayIsoDate() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
 function formatLockedUntil(value: string | undefined) {
   if (!value) {
     return null;
@@ -256,6 +264,13 @@ export default function ReservationPage() {
 
     if (Number.isNaN(appointmentDateTime.getTime())) {
       alert("La fecha u hora de la prueba no es valida.");
+      return;
+    }
+
+    if (appointmentDateTime.getTime() <= Date.now()) {
+      alert(
+        "La fecha y hora de la prueba deben ser posteriores al momento actual.",
+      );
       return;
     }
 
@@ -699,6 +714,7 @@ export default function ReservationPage() {
                   <input
                     type="date"
                     value={appointmentDate}
+                    min={localTodayIsoDate()}
                     onChange={(event) => setAppointmentDate(event.target.value)}
                     required
                     className={`mt-2 ${inputClass}`}
