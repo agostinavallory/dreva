@@ -27,12 +27,15 @@ function syncAuthCookie(accessToken: string | null) {
     return;
   }
 
+  const secure =
+    window.location.protocol === "https:" ? "; Secure" : "";
+
   if (!accessToken) {
-    document.cookie = `${AUTH_TOKEN_COOKIE}=; Path=/; Max-Age=0`;
+    document.cookie = `${AUTH_TOKEN_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax${secure}`;
     return;
   }
 
-  document.cookie = `${AUTH_TOKEN_COOKIE}=${accessToken}; Path=/; Max-Age=7200`;
+  document.cookie = `${AUTH_TOKEN_COOKIE}=${accessToken}; Path=/; Max-Age=7200; SameSite=Lax${secure}`;
 }
 
 export function AuthProvider({
