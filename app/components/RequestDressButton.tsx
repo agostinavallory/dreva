@@ -12,10 +12,6 @@ type Props = {
 
 const BLOCKING_STATUSES = ["accepted", "appointment_scheduled", "confirmed"];
 
-function generateClientPin() {
-  return String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-}
-
 function todayIsoDate() {
   return new Date().toISOString().split("T")[0];
 }
@@ -153,14 +149,12 @@ if (manualBlocks && manualBlocks.length > 0) {
       return;
     }
 
-    const pin = generateClientPin();
     const { error } = await supabase.from("reservations").insert({
       dress_id: dressId,
       user_id: user.id,
       owner_id: ownerId,
       event_date: eventDate,
       status: "pending",
-      client_pin: pin,
     });
 
     if (error) {
