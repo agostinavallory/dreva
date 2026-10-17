@@ -33,6 +33,12 @@ type ClientProfile = {
   apellido: string;
 };
 
+type PinConfirmationResult = {
+  result?: string;
+  attempts_remaining?: number;
+  locked_until?: string;
+};
+
 const STATUS_LABELS: Record<string, string> = {
   pending: "Solicitud pendiente",
   accepted: "Disponibilidad aceptada",
@@ -128,6 +134,36 @@ function formatPrice(value: number | null) {
   if (!value) return "-";
 
   return new Intl.NumberFormat("es-PY").format(value);
+}
+
+function formatLockedUntil(value: string | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return formatFullTime(date);
+}
+
+function getPinConfirmationErrorMessage(message: string) {
+  if (message.includes("Not authorized")) {
+    return "No tenés permiso para confirmar esta reserva.";
+  }
+
+  if (message.includes("expired")) {
+    return "El plazo de coordinación de esta reserva venció. La reserva ya no puede confirmarse.";
+  }
+
+  if (message.includes("current status")) {
+    return "La reserva ya no está en un estado que permita confirmarla.";
+  }
+
+  return "No pudimos confirmar la reserva. Intentá nuevamente.";
 }
 
 export default function ReservationPage() {
@@ -248,7 +284,7 @@ export default function ReservationPage() {
   async function handleValidatePin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!reservation) {
+    if (!reservation || validatingPin) {
       return;
     }
 
@@ -260,28 +296,58 @@ export default function ReservationPage() {
     setValidatingPin(true);
     setPinError(null);
 
-    const { error } = await supabase.rpc("validate_reservation_pin", {
+    const { data, error } = await supabase.rpc("confirm_reservation_with_pin", {
       p_reservation_id: reservation.id,
       p_pin: pin,
     });
 
     if (error) {
-      console.error("[DREVA reservation detail] pin validation error", error);
+      console.error("[DREVA reservation detail] pin confirmation error", {
+        message: error.message,
+        code: error.code,
+      });
 
-      if (error.message.includes("Invalid PIN")) {
-        setPinError("El codigo no coincide. Verifica el PIN con la clienta e intenta de nuevo.");
-      } else {
-        setPinError(error.message);
-      }
-
+      setPinError(getPinConfirmationErrorMessage(error.message));
       setValidatingPin(false);
       return;
     }
 
-    setShowPinPanel(false);
-    setPin("");
-    setSuccessMessage("Reserva confirmada correctamente.");
-    await loadReservation();
+    const result = (data ?? {}) as PinConfirmationResult;
+
+    if (result.result === "confirmed") {
+      setShowPinPanel(false);
+      setPin("");
+      setSuccessMessage("Reserva confirmada correctamente.");
+      await loadReservation();
+      setValidatingPin(false);
+      return;
+    }
+
+    if (result.result === "invalid_pin") {
+      const remaining = result.attempts_remaining ?? 0;
+
+      setPinError(
+        `Código incorrecto. Te quedan ${remaining} ${
+          remaining === 1 ? "intento" : "intentos"
+        }.`,
+      );
+      setValidatingPin(false);
+      return;
+    }
+
+    if (result.result === "locked") {
+      const lockedUntil = formatLockedUntil(result.locked_until);
+
+      setPinError(
+        lockedUntil
+          ? `Demasiados intentos. Podés reintentar después de las ${lockedUntil}.`
+          : "Demasiados intentos. Esperá unos minutos antes de volver a intentar.",
+      );
+      setValidatingPin(false);
+      return;
+    }
+
+    setPinError("No pudimos confirmar la reserva. Intentá nuevamente.");
     setValidatingPin(false);
   }
 
