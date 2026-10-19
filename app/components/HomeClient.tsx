@@ -308,15 +308,15 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
       />
 
       {activeChips.length > 0 && (
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           {activeChips.map((chip) => (
             <button
               key={chip.key}
               type="button"
               onClick={chip.onRemove}
-              className="inline-flex items-center gap-2 rounded-xl border border-[#ffc6d9] bg-white px-4 py-2 text-sm font-semibold text-[#ff2f78] shadow-sm transition hover:border-[#ff2f78]"
+              className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-dreva-border bg-dreva-soft px-3.5 py-1.5 text-xs font-semibold text-dreva-action shadow-dreva-xs transition hover:border-dreva-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30 sm:text-sm"
             >
-              {chip.label}
+              <span className="truncate">{chip.label}</span>
               <CloseIcon />
             </button>
           ))}
@@ -324,7 +324,7 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
           <button
             type="button"
             onClick={clearFilters}
-            className="ml-auto inline-flex items-center gap-2 px-2 py-2 text-sm font-semibold text-[#ff2f78] transition hover:text-[#d9195d]"
+            className="ml-auto inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold text-dreva-action transition hover:bg-dreva-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30"
           >
             Limpiar todo
             <TrashIcon />
@@ -360,22 +360,25 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
       </div>
 
       {sortedDresses.length === 0 ? (
-        <div className="rounded-[1.75rem] border border-[#f2dbe4] bg-white px-6 py-12 text-center shadow-sm">
-          <h2 className="text-xl font-bold text-[#252329]">
+        <div className="rounded-dreva-card border border-dreva-border bg-dreva-surface px-6 py-12 text-center shadow-dreva-sm">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-dreva-soft text-dreva-action">
+            <SearchOffIcon />
+          </div>
+          <h2 className="mt-5 text-xl font-bold text-dreva-text">
             {eventDate
               ? "No encontramos vestidos disponibles para esta fecha"
               : "No encontramos vestidos con esos filtros"}
           </h2>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#77727a]">
+          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-dreva-text-muted">
             {eventDate
-              ? "Prueba cambiar la fecha o ajustar los filtros."
-              : "Ajusta la busqueda, color, talla o precio para ver mas opciones."}
+              ? "Probá cambiar la fecha o ajustar los filtros."
+              : "Ajustá la búsqueda, color, talla o precio para ver más opciones."}
           </p>
           {hasActiveFilters && (
             <button
               type="button"
               onClick={clearFilters}
-              className="mt-6 rounded-full bg-[#ff2f78] px-6 py-3 text-sm font-bold text-white shadow-[0_14px_35px_rgba(255,47,120,0.25)]"
+              className="mt-6 rounded-full bg-dreva-action px-6 py-3 text-sm font-bold text-white shadow-dreva-md transition hover:bg-dreva-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
             >
               Limpiar filtros
             </button>
@@ -466,17 +469,17 @@ function FilterDrawer({
         className="absolute inset-0 cursor-default"
         onClick={onClose}
       />
-      <div className="relative w-full rounded-t-[2rem] bg-white px-6 pb-7 pt-4 shadow-[0_-24px_80px_rgba(29,24,32,0.18)] sm:px-12">
-        <div className="mx-auto mb-5 h-1.5 w-16 rounded-full bg-[#d8d2d6]" />
+      <div className="relative w-full max-h-[90dvh] overflow-y-auto rounded-t-dreva-dialog border-t border-dreva-border bg-dreva-surface px-6 pb-7 pt-4 shadow-dreva-lg sm:mx-auto sm:max-w-3xl sm:px-12">
+        <div className="mx-auto mb-5 h-1.5 w-16 rounded-full bg-dreva-border" />
         <div className="mb-7 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-[#171417]">
+          <h2 className="text-xl font-bold text-dreva-text">
             {titleByFilter[activeDrawer]}
           </h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
-            className="rounded-full p-2 text-[#4b454d] transition hover:bg-[#f7f2f5]"
+            className="rounded-full p-2 text-dreva-text-muted transition hover:bg-dreva-soft hover:text-dreva-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30"
           >
             <CloseLargeIcon />
           </button>
@@ -489,12 +492,13 @@ function FilterDrawer({
                 key={color}
                 type="button"
                 onClick={() => setSelectedColor(color)}
-                className="flex flex-col items-center gap-2 text-sm font-medium text-[#615b63]"
+                aria-pressed={selectedColor === color}
+                className="flex flex-col items-center gap-2 rounded-dreva-control text-sm font-medium text-dreva-text-muted transition hover:text-dreva-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30"
               >
                 <span
-                  className={`h-12 w-12 rounded-full border-2 shadow-sm ${
+                  className={`h-12 w-12 rounded-full border-2 shadow-dreva-xs ${
                     selectedColor === color
-                      ? "border-[#ff5f98] ring-4 ring-[#ffe1ec]"
+                      ? "border-dreva-action ring-4 ring-dreva-soft"
                       : "border-white"
                   }`}
                   style={{ backgroundColor: colorToHex(color) }}
@@ -548,14 +552,14 @@ function FilterDrawer({
           <button
             type="button"
             onClick={clearCurrentFilter}
-            className="rounded-full border border-[#e7dfe4] bg-white px-6 py-4 text-sm font-bold text-[#ff2f78] transition hover:border-[#ff2f78]"
+            className="rounded-full border border-dreva-border bg-dreva-surface px-6 py-4 text-sm font-bold text-dreva-action transition hover:border-dreva-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30"
           >
             Limpiar
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-[#ff2f78] px-6 py-4 text-sm font-bold text-white shadow-[0_18px_40px_rgba(255,47,120,0.28)] transition hover:bg-[#ef1f68]"
+            className="rounded-full bg-dreva-action px-6 py-4 text-sm font-bold text-white shadow-dreva-md transition hover:bg-dreva-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
           >
             Aplicar filtros
           </button>
@@ -578,10 +582,10 @@ function FilterOption({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-2xl border px-5 py-4 text-sm font-bold transition ${
+      className={`rounded-dreva-control border px-5 py-4 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30 ${
         active
-          ? "border-[#ff2f78] bg-[#fff1f6] text-[#ff2f78]"
-          : "border-[#eee7eb] bg-white text-[#2b282d] hover:border-[#ff9fbe]"
+          ? "border-dreva-action bg-dreva-soft text-dreva-action"
+          : "border-dreva-border bg-dreva-surface text-dreva-text hover:border-dreva-brand/50"
       }`}
     >
       {label}
@@ -647,6 +651,26 @@ function ChevronDownIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+function SearchOffIcon() {
+  return (
+    <svg
+      width="26"
+      height="26"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14ZM20 20l-3.5-3.5"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
       />
     </svg>
   );
