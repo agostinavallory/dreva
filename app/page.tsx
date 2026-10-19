@@ -1,4 +1,5 @@
-import { Navbar } from "@/app/components/Navbar";
+import { HomeBackdrop } from "@/app/components/HomeBackdrop";
+import { HomeNavbar } from "@/app/components/HomeNavbar";
 import { HomeClient } from "@/app/components/HomeClient";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -104,10 +105,11 @@ export default async function Home() {
   ) as string[];
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--dark)]">
-      <Navbar />
+    <main className="relative min-h-screen bg-[var(--dreva-color-background)] text-[var(--dark)]">
+      <HomeBackdrop />
+      <HomeNavbar />
 
-      <section className="mx-auto w-full max-w-7xl px-5 pb-16 pt-6 sm:px-8 lg:pt-8">
+      <section className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 pt-4 sm:px-8 sm:pb-16 sm:pt-6 lg:pt-8">
         {error ? (
           <CatalogErrorState />
         ) : dresses.length === 0 ? (

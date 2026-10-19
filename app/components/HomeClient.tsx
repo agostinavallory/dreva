@@ -252,24 +252,24 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <HeroSearch
         search={search}
         setSearch={setSearch}
         onOpenFilters={() => setActiveDrawer("color")}
       />
 
-      <section className="rounded-[1.75rem] border border-[#ff7bab] bg-white px-5 py-5 shadow-[0_18px_60px_rgba(255,45,126,0.08)] sm:px-8">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <section className="rounded-[1.75rem] border border-[#ff7bab] bg-white px-4 py-4 shadow-[0_18px_60px_rgba(255,45,126,0.08)] sm:px-8 sm:py-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#ffe5ef] text-[#ff2f78]">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#ffe5ef] text-[#ff2f78] sm:h-14 sm:w-14">
               <CalendarIcon />
             </span>
             <div>
-              <h1 className="text-xl font-bold text-[#ff2f78] sm:text-2xl">
+              <h1 className="text-lg font-bold text-[#ff2f78] sm:text-2xl">
                 Fecha del evento
               </h1>
-              <p className="mt-2 max-w-md text-sm leading-6 text-[#77727a] sm:text-base">
+              <p className="mt-1 max-w-md text-sm leading-5 text-[#77727a] sm:mt-2 sm:text-base sm:leading-6">
                 Selecciona la fecha de tu evento para ver vestidos disponibles.
               </p>
             </div>
@@ -278,7 +278,7 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
           <button
             type="button"
             onClick={openEventDatePicker}
-            className="inline-flex cursor-pointer items-center justify-center gap-3 rounded-full px-1 py-2 text-sm font-bold text-[#ff2f78] transition hover:bg-[#fff2f7] sm:px-4"
+            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-1 py-2 text-sm font-bold text-[#ff2f78] transition hover:bg-[#fff2f7] sm:gap-3 sm:px-4"
           >
             <CalendarIcon small />
             <span>{eventDate ? formatEventDate(eventDate) : "Elegir fecha"}</span>
@@ -332,7 +332,7 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
         </div>
       )}
 
-      <div className="flex flex-col gap-4 pt-1 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xl font-bold text-[#252329] sm:text-2xl">
             {resultLabel}

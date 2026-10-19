@@ -49,7 +49,7 @@ export function FiltersBar({
           key={filter.type}
           type="button"
           onClick={() => onOpenFilter(filter.type)}
-          className="flex min-h-16 items-center justify-center gap-3 rounded-[1.4rem] border border-[#e8e2e6] bg-white px-4 py-3 text-sm font-bold text-[#29252b] shadow-[0_10px_30px_rgba(38,31,35,0.04)] transition hover:border-[#ff9dbd] hover:shadow-[0_14px_35px_rgba(255,47,120,0.08)] sm:text-base"
+          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-[#e8e2e6] bg-white px-3 py-2 text-sm font-bold text-[#29252b] shadow-[0_10px_30px_rgba(38,31,35,0.04)] transition hover:border-[#ff9dbd] hover:shadow-[0_14px_35px_rgba(255,47,120,0.08)] sm:min-h-16 sm:gap-3 sm:rounded-[1.4rem] sm:px-4 sm:py-3 sm:text-base"
         >
           <FilterIcon name={filter.icon} />
           <span className="truncate">{getLabel(filter.type)}</span>
