@@ -268,7 +268,6 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
       <HeroSearch
         search={search}
         setSearch={setSearch}
-        onOpenFilters={() => setActiveDrawer("color")}
       />
 
       <section className="rounded-[22px] border border-[#ff8fbb] bg-white px-5 py-5 shadow-dreva-xs sm:px-8 sm:py-5">

@@ -3,30 +3,19 @@
 type Props = {
   search: string;
   setSearch: (value: string) => void;
-  onOpenFilters: () => void;
 };
 
-export function HeroSearch({ search, setSearch, onOpenFilters }: Props) {
+export function HeroSearch({ search, setSearch }: Props) {
   return (
-    <div className="flex items-stretch gap-3">
-      <div className="relative flex-1">
-        <SearchIcon />
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          type="text"
-          placeholder="Buscar vestido..."
-          className="h-[52px] w-full rounded-dreva-control border border-dreva-border bg-dreva-surface pl-14 pr-4 text-base font-medium text-dreva-text shadow-dreva-sm outline-none transition placeholder:text-dreva-text-muted focus:border-dreva-focus focus:ring-2 focus:ring-dreva-focus/25 sm:h-[70px] sm:pl-20 sm:text-xl"
-        />
-      </div>
-      <button
-        type="button"
-        onClick={onOpenFilters}
-        aria-label="Filtrar por color"
-        className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-dreva-control border border-dreva-border bg-dreva-surface text-dreva-text-muted shadow-dreva-sm transition hover:bg-dreva-soft hover:text-dreva-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30 sm:h-[70px] sm:w-[70px]"
-      >
-        <SlidersIcon />
-      </button>
+    <div className="relative">
+      <SearchIcon />
+      <input
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        type="text"
+        placeholder="Buscar vestido..."
+        className="h-[52px] w-full rounded-dreva-control border border-dreva-border bg-dreva-surface pl-14 pr-4 text-base font-medium text-dreva-text shadow-dreva-sm outline-none transition placeholder:text-dreva-text-muted focus:border-dreva-focus focus:ring-2 focus:ring-dreva-focus/25 sm:h-[70px] sm:pl-20 sm:text-xl"
+      />
     </div>
   );
 }
@@ -40,20 +29,6 @@ function SearchIcon() {
     >
       <path
         d="m21 21-4.35-4.35M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.8"
-      />
-    </svg>
-  );
-}
-
-function SlidersIcon() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-      <path
-        d="M4 7h5M15 7h5M11 7a2 2 0 1 0 4 0 2 2 0 0 0-4 0ZM4 17h5M15 17h5M9 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0Z"
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
