@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
 
 import { useAuth } from "@/app/providers/AuthProvider";
@@ -20,12 +21,20 @@ export function HomeNavbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[var(--dreva-color-border)] bg-white/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-8 sm:py-4">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-10 sm:py-6 lg:px-16">
         <Link
           href="/"
-          className="text-lg font-semibold tracking-[0.2em] text-[var(--dreva-color-action)] sm:text-xl sm:tracking-[0.3em]"
+          className="flex items-center"
+          aria-label="DREVA — Inicio"
         >
-          DREVA
+          <Image
+            src="/brand/dreva-logo.png"
+            alt="DREVA"
+            width={2172}
+            height={724}
+            priority
+            className="h-auto w-[190px] shrink-0 -my-[16px] sm:w-[210px] sm:-my-[18px]"
+          />
         </Link>
 
         {loading ? null : user ? (
