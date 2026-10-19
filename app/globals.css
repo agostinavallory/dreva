@@ -25,3 +25,101 @@ input {
   background: var(--primary);
   color: white;
 }
+
+/* ============================================================
+   DREVA Design System 1.0 - tokens base (Fase 1A)
+   Bloque aditivo: no reemplaza las variables anteriores.
+   ============================================================ */
+
+:root {
+  /* Identidad */
+  --dreva-color-brand: #ff5ca8;
+  --dreva-color-action: #c21d62;
+  --dreva-color-action-hover: #a71952;
+  --dreva-color-soft: #fff0f6;
+
+  /* Superficies y texto */
+  --dreva-color-background: #fcf9fb;
+  --dreva-color-surface: #ffffff;
+  --dreva-color-text: #211d26;
+  --dreva-color-text-muted: #635b66;
+
+  /* Bordes y foco */
+  --dreva-color-border: #e6dfe4;
+  --dreva-color-border-control: #8c818b;
+  --dreva-color-focus: #9c1850;
+
+  /* Estados semanticos (texto / fondo) */
+  --dreva-color-success: #166534;
+  --dreva-color-success-bg: #edf8f0;
+  --dreva-color-warning: #854d0e;
+  --dreva-color-warning-bg: #fff8e6;
+  --dreva-color-info: #1d4ed8;
+  --dreva-color-info-bg: #eff6ff;
+  --dreva-color-appointment: #6d28d9;
+  --dreva-color-appointment-bg: #f5f0ff;
+  --dreva-color-error: #b42318;
+  --dreva-color-error-bg: #fef3f2;
+  --dreva-color-neutral: #5f5963;
+  --dreva-color-neutral-bg: #f3f1f4;
+
+  /* Radios */
+  --dreva-radius-control: 12px;
+  --dreva-radius-card: 16px;
+  --dreva-radius-dialog: 20px;
+
+  /* Espaciado */
+  --dreva-space-1: 4px;
+  --dreva-space-2: 8px;
+  --dreva-space-3: 12px;
+  --dreva-space-4: 16px;
+  --dreva-space-6: 24px;
+  --dreva-space-8: 32px;
+  --dreva-space-12: 48px;
+
+  /* Sombras neutras, suaves y discretas */
+  --dreva-shadow-xs: 0 1px 2px rgba(33, 29, 38, 0.05);
+  --dreva-shadow-sm: 0 1px 3px rgba(33, 29, 38, 0.08), 0 1px 2px rgba(33, 29, 38, 0.04);
+  --dreva-shadow-md: 0 4px 12px rgba(33, 29, 38, 0.08);
+  --dreva-shadow-lg: 0 12px 28px rgba(33, 29, 38, 0.1);
+
+  /* Tipografia: Poppins se incorpora en una fase posterior con next/font */
+  --dreva-font-sans: var(--font-poppins, "Poppins"), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Expone los tokens como utilidades de Tailwind CSS 4 (aditivo).
+   Habilita clases como bg-dreva-brand, text-dreva-text,
+   rounded-dreva-card, shadow-dreva-sm o font-dreva-sans. */
+@theme inline {
+  --color-dreva-brand: var(--dreva-color-brand);
+  --color-dreva-action: var(--dreva-color-action);
+  --color-dreva-action-hover: var(--dreva-color-action-hover);
+  --color-dreva-soft: var(--dreva-color-soft);
+  --color-dreva-background: var(--dreva-color-background);
+  --color-dreva-surface: var(--dreva-color-surface);
+  --color-dreva-text: var(--dreva-color-text);
+  --color-dreva-text-muted: var(--dreva-color-text-muted);
+  --color-dreva-border: var(--dreva-color-border);
+  --color-dreva-border-control: var(--dreva-color-border-control);
+  --color-dreva-focus: var(--dreva-color-focus);
+  --color-dreva-success: var(--dreva-color-success);
+  --color-dreva-success-bg: var(--dreva-color-success-bg);
+  --color-dreva-warning: var(--dreva-color-warning);
+  --color-dreva-warning-bg: var(--dreva-color-warning-bg);
+  --color-dreva-info: var(--dreva-color-info);
+  --color-dreva-info-bg: var(--dreva-color-info-bg);
+  --color-dreva-appointment: var(--dreva-color-appointment);
+  --color-dreva-appointment-bg: var(--dreva-color-appointment-bg);
+  --color-dreva-error: var(--dreva-color-error);
+  --color-dreva-error-bg: var(--dreva-color-error-bg);
+  --color-dreva-neutral: var(--dreva-color-neutral);
+  --color-dreva-neutral-bg: var(--dreva-color-neutral-bg);
+  --radius-dreva-control: var(--dreva-radius-control);
+  --radius-dreva-card: var(--dreva-radius-card);
+  --radius-dreva-dialog: var(--dreva-radius-dialog);
+  --shadow-dreva-xs: var(--dreva-shadow-xs);
+  --shadow-dreva-sm: var(--dreva-shadow-sm);
+  --shadow-dreva-md: var(--dreva-shadow-md);
+  --shadow-dreva-lg: var(--dreva-shadow-lg);
+  --font-dreva-sans: var(--dreva-font-sans);
+}
