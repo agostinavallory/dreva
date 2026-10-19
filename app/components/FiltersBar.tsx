@@ -42,6 +42,13 @@ export function FiltersBar({
     if (filter === "price") return selectedPrice?.label ?? "Precio";
   }
 
+  function isSelected(filter: FilterType) {
+    if (filter === "color") return Boolean(selectedColor);
+    if (filter === "size") return Boolean(selectedSize);
+    if (filter === "length") return Boolean(selectedLength);
+    return Boolean(selectedPrice);
+  }
+
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5">
       {filters.map((filter) => (
@@ -49,7 +56,11 @@ export function FiltersBar({
           key={filter.type}
           type="button"
           onClick={() => onOpenFilter(filter.type)}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-[#e8e2e6] bg-white px-3 py-2 text-sm font-bold text-[#29252b] shadow-[0_10px_30px_rgba(38,31,35,0.04)] transition hover:border-[#ff9dbd] hover:shadow-[0_14px_35px_rgba(255,47,120,0.08)] sm:min-h-16 sm:gap-3 sm:rounded-[1.4rem] sm:px-4 sm:py-3 sm:text-base"
+          className={`flex min-h-12 items-center justify-center gap-2 rounded-dreva-control border px-3 text-sm font-semibold shadow-dreva-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30 sm:min-h-16 sm:gap-3 sm:px-4 sm:text-base ${
+            isSelected(filter.type)
+              ? "border-dreva-action bg-dreva-soft text-dreva-action"
+              : "border-dreva-border bg-dreva-surface text-dreva-text hover:border-dreva-brand/50"
+          }`}
         >
           <FilterIcon name={filter.icon} />
           <span className="truncate">{getLabel(filter.type)}</span>

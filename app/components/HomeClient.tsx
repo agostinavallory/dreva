@@ -212,9 +212,7 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
   }>;
 
   const hasActiveFilters = activeChips.length > 0 || search.trim().length > 0;
-  const resultLabel = eventDate
-    ? "Vestidos disponibles para tu fecha"
-    : "Vestidos disponibles";
+  const resultLabel = "Explorá vestidos";
   const sortedDresses = useMemo(() => {
     if (sortMode === "default") {
       return filtered;
@@ -259,18 +257,18 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
         onOpenFilters={() => setActiveDrawer("color")}
       />
 
-      <section className="rounded-[1.75rem] border border-[#ff7bab] bg-white px-4 py-4 shadow-[0_18px_60px_rgba(255,45,126,0.08)] sm:px-8 sm:py-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#ffe5ef] text-[#ff2f78] sm:h-14 sm:w-14">
+      <section className="rounded-[22px] border border-[#ff8fbb] bg-white px-5 py-5 shadow-dreva-xs sm:px-8 sm:py-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#ffe4f0] text-[#ff1684] sm:h-[60px] sm:w-[60px]">
               <CalendarIcon />
             </span>
             <div>
-              <h1 className="text-lg font-bold text-[#ff2f78] sm:text-2xl">
+              <h1 className="text-xl font-bold text-[#ff1684] sm:text-2xl">
                 Fecha del evento
               </h1>
-              <p className="mt-1 max-w-md text-sm leading-5 text-[#77727a] sm:mt-2 sm:text-base sm:leading-6">
-                Selecciona la fecha de tu evento para ver vestidos disponibles.
+              <p className="mt-1.5 text-[15px] leading-6 text-[#5f6b7a] sm:text-base">
+                El local confirmará la disponibilidad para la fecha de tu evento.
               </p>
             </div>
           </div>
@@ -278,10 +276,12 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
           <button
             type="button"
             onClick={openEventDatePicker}
-            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full px-1 py-2 text-sm font-bold text-[#ff2f78] transition hover:bg-[#fff2f7] sm:gap-3 sm:px-4"
+            className="inline-flex h-11 w-full cursor-pointer items-center gap-2 rounded-[13px] bg-[#ff1684] px-5 text-base font-semibold text-white shadow-[0_10px_24px_rgba(255,22,132,0.28)] transition hover:bg-[#e5126f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff1684]/40 sm:h-[60px] sm:w-[208px]"
           >
             <CalendarIcon small />
-            <span>{eventDate ? formatEventDate(eventDate) : "Elegir fecha"}</span>
+            <span className="flex-1 text-center">
+              {eventDate ? formatEventDate(eventDate) : "Elegir fecha"}
+            </span>
             <ChevronRightIcon />
           </button>
           <input
@@ -334,11 +334,11 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
 
       <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xl font-bold text-[#252329] sm:text-2xl">
+          <p className="text-xl font-bold text-dreva-text sm:text-2xl">
             {resultLabel}
           </p>
           {eventDate && (
-            <p className="mt-1 text-sm font-semibold text-[#77727a]">
+            <p className="mt-1 text-sm font-semibold text-dreva-text-muted">
               Evento: {formatEventDate(eventDate)}
             </p>
           )}
@@ -352,9 +352,9 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
               current === "recent" ? "default" : "recent",
             )
           }
-          className="inline-flex w-fit items-center gap-3 rounded-xl border border-[#e8e2e6] bg-white px-4 py-3 text-sm font-semibold text-[#252329] shadow-sm"
+          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-dreva-control border border-dreva-border bg-dreva-surface px-4 text-sm font-semibold text-dreva-text shadow-dreva-xs transition hover:border-dreva-brand/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30"
         >
-          {sortMode === "recent" ? "✓ Mas recientes" : "Mas recientes"}
+          {sortMode === "recent" ? "✓ Más recientes" : "Más recientes"}
           <ChevronDownIcon />
         </button>
       </div>
