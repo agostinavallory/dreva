@@ -384,7 +384,7 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
       ) : (
         <div className="grid grid-cols-2 gap-5 sm:gap-6 md:grid-cols-3 xl:grid-cols-4">
           {sortedDresses.map((dress) => (
-            <DressCard key={dress.id} dress={dress} />
+            <DressCard key={dress.id} dress={dress} variant="home" />
           ))}
         </div>
       )}
