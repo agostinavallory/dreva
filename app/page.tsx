@@ -109,7 +109,7 @@ export default async function Home() {
       <HomeBackdrop />
       <HomeNavbar />
 
-      <section className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 pt-4 sm:px-8 sm:pb-16 sm:pt-6 lg:pt-8">
+      <section className="relative z-10 mx-auto w-full max-w-7xl px-4 pb-12 pt-4 sm:px-8 sm:pb-16 sm:pt-6 lg:w-[88%] lg:px-0 lg:pt-8">
         {error ? (
           <CatalogErrorState />
         ) : dresses.length === 0 ? (

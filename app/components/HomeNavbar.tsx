@@ -21,7 +21,7 @@ export function HomeNavbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[var(--dreva-color-border)] bg-white/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-10 sm:py-6 lg:px-16">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-10 sm:py-6 lg:w-[88%] lg:px-0">
         <Link
           href="/"
           className="flex items-center"

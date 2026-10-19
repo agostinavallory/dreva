@@ -8,20 +8,22 @@ type Props = {
 
 export function HeroSearch({ search, setSearch, onOpenFilters }: Props) {
   return (
-    <div className="relative">
-      <SearchIcon />
-      <input
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        type="text"
-        placeholder="Buscar vestido..."
-        className="h-[52px] w-full rounded-dreva-control border border-dreva-border bg-dreva-surface px-14 text-base font-medium text-dreva-text shadow-dreva-sm outline-none transition placeholder:text-dreva-text-muted focus:border-dreva-focus focus:ring-2 focus:ring-dreva-focus/25 sm:h-[88px] sm:px-20 sm:text-xl"
-      />
+    <div className="flex items-stretch gap-3">
+      <div className="relative flex-1">
+        <SearchIcon />
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          type="text"
+          placeholder="Buscar vestido..."
+          className="h-[52px] w-full rounded-dreva-control border border-dreva-border bg-dreva-surface pl-14 pr-4 text-base font-medium text-dreva-text shadow-dreva-sm outline-none transition placeholder:text-dreva-text-muted focus:border-dreva-focus focus:ring-2 focus:ring-dreva-focus/25 sm:h-[70px] sm:pl-20 sm:text-xl"
+        />
+      </div>
       <button
         type="button"
         onClick={onOpenFilters}
-        aria-label="Abrir filtros"
-        className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full text-dreva-text-muted transition hover:bg-dreva-soft hover:text-dreva-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30 sm:right-7"
+        aria-label="Filtrar por color"
+        className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-dreva-control border border-dreva-border bg-dreva-surface text-dreva-text-muted shadow-dreva-sm transition hover:bg-dreva-soft hover:text-dreva-action focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30 sm:h-[70px] sm:w-[70px]"
       >
         <SlidersIcon />
       </button>

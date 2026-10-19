@@ -57,6 +57,20 @@ function formatEventDate(date: string) {
   }).format(parsedDate);
 }
 
+function formatShortEventDate(date: string) {
+  if (!date) {
+    return "";
+  }
+
+  const parsedDate = new Date(`${date}T00:00:00`);
+
+  return new Intl.DateTimeFormat("es-PY", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(parsedDate);
+}
+
 function normalizeDressId(dressId: Dress["id"]) {
   return String(dressId);
 }
@@ -257,7 +271,7 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
         onOpenFilters={() => setActiveDrawer("color")}
       />
 
-      <section className="rounded-[22px] border border-[#ff8fbb] bg-white px-5 py-5 shadow-dreva-xs sm:px-8 sm:py-6">
+      <section className="rounded-[22px] border border-[#ff8fbb] bg-white px-5 py-5 shadow-dreva-xs sm:px-8 sm:py-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
           <div className="flex items-center gap-4 sm:gap-6">
             <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#ffe4f0] text-[#ff1684] sm:h-[60px] sm:w-[60px]">
@@ -276,11 +290,16 @@ export function HomeClient({ dresses, sizes, colors }: Props) {
           <button
             type="button"
             onClick={openEventDatePicker}
-            className="inline-flex h-11 w-full cursor-pointer items-center gap-2 rounded-[13px] bg-[#ff1684] px-5 text-base font-semibold text-white shadow-[0_10px_24px_rgba(255,22,132,0.28)] transition hover:bg-[#e5126f] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff1684]/40 sm:h-[60px] sm:w-[208px]"
+            aria-label={
+              eventDate
+                ? `Fecha del evento: ${formatEventDate(eventDate)}. Cambiar fecha`
+                : "Elegir fecha del evento"
+            }
+            className="inline-flex h-11 w-full cursor-pointer items-center gap-2 rounded-[13px] bg-dreva-action px-5 text-base font-semibold text-white shadow-[0_10px_24px_rgba(255,22,132,0.28)] transition hover:bg-dreva-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff1684]/40 sm:h-[60px] sm:w-[208px]"
           >
             <CalendarIcon small />
-            <span className="flex-1 text-center">
-              {eventDate ? formatEventDate(eventDate) : "Elegir fecha"}
+            <span className="flex-1 truncate text-center">
+              {eventDate ? formatShortEventDate(eventDate) : "Elegir fecha"}
             </span>
             <ChevronRightIcon />
           </button>
