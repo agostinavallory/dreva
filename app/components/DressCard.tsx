@@ -73,12 +73,12 @@ export function DressCard({ dress, variant = "default" }: DressCardProps) {
           {(showSizeTag || showColorTag) && (
             <div className="flex flex-wrap gap-1.5 pt-1.5">
               {showSizeTag && (
-                <span className="rounded-full bg-[#f7eef2] px-2 py-0.5 text-xs font-medium text-[#615b63]">
+                <span className="rounded-full bg-[#f7f2f5] px-2.5 py-0.5 text-[11px] sm:text-xs font-medium text-[#615b63] truncate max-w-[90px]">
                   Talla {dress.talla}
                 </span>
               )}
               {showColorTag && (
-                <span className="rounded-full bg-[#f7eef2] px-2 py-0.5 text-xs font-medium text-[#615b63]">
+                <span className="rounded-full bg-[#f8eef4] px-2.5 py-0.5 text-[11px] sm:text-xs font-medium text-[#615b63] truncate max-w-[120px]">
                   {dress.color}
                 </span>
               )}
@@ -87,7 +87,7 @@ export function DressCard({ dress, variant = "default" }: DressCardProps) {
         </div>
       </Link>
       <div className="absolute right-3 top-3">
-        <FavoriteButton dressId={dress.id} />
+        <FavoriteButton dressId={dress.id} variant={isHome ? "home" : "default"} />
       </div>
     </article>
   );

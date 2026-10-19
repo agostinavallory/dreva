@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
 
+type FavoriteButtonVariant = "default" | "home";
+
 type Props = {
   dressId: string | number;
+  variant?: FavoriteButtonVariant;
 };
 
 function normalizeDressId(dressId: string | number) {
@@ -22,7 +25,8 @@ function logFavoriteDebug(message: string, details: unknown) {
   }
 }
 
-export function FavoriteButton({ dressId }: Props) {
+export function FavoriteButton({ dressId, variant = "default" }: Props) {
+  const isHome = variant === "home";
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const userId = user?.id;
@@ -183,8 +187,12 @@ export function FavoriteButton({ dressId }: Props) {
       disabled={saving}
       aria-pressed={liked}
       aria-label={liked ? "Quitar de favoritos" : "Agregar a favoritos"}
-      className={`flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-[0_8px_24px_rgba(31,25,32,0.12)] backdrop-blur transition hover:scale-105 hover:text-[#ff2f78] disabled:cursor-not-allowed disabled:opacity-60 ${
-        liked ? "text-[#ff2f78]" : "text-[#4a454c]"
+      className={`flex h-11 w-11 items-center justify-center rounded-full bg-white shadow-[0_8px_24px_rgba(31,25,32,0.12)] backdrop-blur transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60 ${
+        isHome
+          ? "text-[#FF1684]"
+          : liked
+          ? "text-[#ff2f78]"
+          : "text-[#4a454c]"
       }`}
     >
       <svg width="24" height="24" viewBox="0 0 24 24" fill={liked ? "currentColor" : "none"}>
