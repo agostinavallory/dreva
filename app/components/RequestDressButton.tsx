@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { CalendarDays, User } from "lucide-react";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -24,6 +25,23 @@ export function RequestDressButton({ dressId, ownerId, dressName }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [showLegal, setShowLegal] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const { overflow, paddingRight } = document.body.style;
+    const scrollbarWidth =
+      window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
+
+    return () => {
+      document.body.style.overflow = overflow;
+      document.body.style.paddingRight = paddingRight;
+    };
+  }, [open]);
 
   function resetModal() {
     setOpen(false);
@@ -178,23 +196,23 @@ if (manualBlocks && manualBlocks.length > 0) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-2xl bg-black px-6 py-3 text-sm font-semibold text-white transition hover:opacity-80"
+        className="inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-dreva-action px-6 py-3.5 text-base font-semibold text-white shadow-dreva-sm transition hover:bg-dreva-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
       >
+        <CalendarDays className="h-5 w-5 shrink-0" strokeWidth={2} />
         Solicitar vestido
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/45 px-4 py-6">
-          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+          <div className="w-full max-w-md overflow-hidden rounded-dreva-dialog border border-dreva-border bg-white shadow-dreva-lg">
             {!showLegal && !requestSent && (
               <div className="p-6">
-                <h2 className="text-2xl font-semibold text-[var(--ink)]">
+                <h2 className="text-2xl font-semibold text-dreva-text">
                   Solicitar vestido
                 </h2>
 
-                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                  Selecciona la fecha de tu evento. DREVA enviara la solicitud
-                  al local y registrara el avance del proceso.
+                <p className="mt-2 text-sm leading-6 text-dreva-text-muted">
+                  Elegí la fecha de tu evento para continuar con tu solicitud.
                 </p>
 
                 <input
@@ -202,112 +220,163 @@ if (manualBlocks && manualBlocks.length > 0) {
                   value={eventDate}
                   min={todayIsoDate()}
                   onChange={(event) => setEventDate(event.target.value)}
-                  className="mt-6 w-full rounded-2xl border border-pink-200 px-4 py-3 outline-none focus:border-black"
+                  className="mt-6 w-full rounded-dreva-control border border-dreva-border-control px-4 py-3 text-dreva-text outline-none transition focus:border-dreva-focus focus:ring-2 focus:ring-dreva-focus/25"
                 />
 
                 <div className="mt-6 flex gap-3">
                   <button
                     onClick={resetModal}
-                    className="flex-1 rounded-2xl border border-pink-200 px-4 py-3 font-semibold text-[var(--primary)]"
+                    className="flex-1 rounded-full border border-dreva-border bg-white px-4 py-3 font-semibold text-dreva-action transition hover:bg-dreva-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={handleRequestReview}
-                    className="flex-1 rounded-2xl bg-black px-4 py-3 font-semibold text-white"
+                    className="flex-1 rounded-full bg-dreva-action px-4 py-3 font-semibold text-white transition hover:bg-dreva-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
                   >
-                    Enviar solicitud
+                    Continuar
                   </button>
                 </div>
               </div>
             )}
 
             {showLegal && !requestSent && (
-              <div className="bg-[linear-gradient(180deg,#fff7fb,#ffffff)] p-5 sm:p-6">
-                <div className="rounded-3xl border border-pink-100 bg-white/85 p-5 shadow-[0_18px_55px_rgba(255,92,168,0.16)]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[var(--primary)]">
-                    Terminos DREVA
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold leading-tight text-[var(--ink)]">
-                    Proceso protegido por DREVA
+              <div className="flex max-h-[calc(100dvh-2.5rem)] flex-col bg-[linear-gradient(180deg,#fff7fb,#ffffff)]">
+                <div className="shrink-0 border-b border-[#ffd8e6] px-5 py-4 sm:px-6">
+                  <h2 className="text-xl font-semibold leading-tight text-dreva-text sm:text-2xl">
+                    ¿Cómo funciona tu solicitud?
                   </h2>
-                  <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-                    Tu solicitud abre una revision del local. La cita de prueba
-                    se coordina despues por WhatsApp, fuera de DREVA.
+                  <p className="mt-1.5 text-sm leading-6 text-dreva-text-muted">
+                    Te contamos qué pasa después de enviarla.
                   </p>
+                </div>
 
-                  <ol className="mt-5 space-y-3">
-                    <li className="flex gap-3 rounded-2xl bg-pink-50 px-4 py-3 text-sm font-medium leading-6 text-[var(--ink)]">
-                      <span className="font-semibold">1.</span>
-                      <span>El local revisara disponibilidad.</span>
-                    </li>
-                    <li className="flex gap-3 rounded-2xl bg-[#fffaf3] px-4 py-3 text-sm font-medium leading-6 text-[var(--ink)]">
-                      <span className="font-semibold">2.</span>
-                      <span>
-                        Si acepta, podras coordinar la cita con el local por WhatsApp.
+                <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 sm:px-6">
+                  <ol className="space-y-3">
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-dreva-action text-xs font-semibold text-white">
+                        1
                       </span>
+                      <div>
+                        <p className="text-sm font-semibold leading-6 text-dreva-text">
+                          El local revisa tu solicitud
+                        </p>
+                        <p className="mt-0.5 text-sm leading-6 text-dreva-text-muted">
+                          El local revisa tu pedido y te responde si puede
+                          aceptar la solicitud para la fecha que elegiste.
+                        </p>
+                      </div>
                     </li>
-                    <li className="flex gap-3 rounded-2xl bg-[#f4fbf8] px-4 py-3 text-sm font-medium leading-6 text-[var(--ink)]">
-                      <span className="font-semibold">3.</span>
-                      <span>
-                        En la tienda fisica, el local validara tu codigo de
-                        confirmacion y completara sus requisitos: cedula,
-                        contrato fisico y garantia/pagare correspondiente.
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-dreva-action text-xs font-semibold text-white">
+                        2
                       </span>
+                      <div>
+                        <p className="text-sm font-semibold leading-6 text-dreva-text">
+                          Coordinás tu cita
+                        </p>
+                        <p className="mt-0.5 text-sm leading-6 text-dreva-text-muted">
+                          Si acepta, tenés 48 horas para agendar una cita por
+                          WhatsApp. Podés elegir una fecha posterior para ir al
+                          local.
+                        </p>
+                      </div>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-dreva-action text-xs font-semibold text-white">
+                        3
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold leading-6 text-dreva-text">
+                          Te probás el vestido
+                        </p>
+                        <p className="mt-0.5 text-sm leading-6 text-dreva-text-muted">
+                          Vas al local en la fecha acordada, te probás el vestido
+                          y conocés las condiciones del alquiler para decidir si
+                          querés llevarlo.
+                        </p>
+                      </div>
+                    </li>
+                    <li className="flex gap-3">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-dreva-action text-xs font-semibold text-white">
+                        4
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold leading-6 text-dreva-text">
+                          Confirmás el alquiler con tu PIN
+                        </p>
+                        <p className="mt-0.5 text-sm leading-6 text-dreva-text-muted">
+                          Si decidís alquilarlo, presentás tu PIN para que el
+                          local confirme la reserva en DREVA. El pago, contrato y
+                          las garantías que correspondan se gestionan
+                          directamente con el local.
+                        </p>
+                      </div>
                     </li>
                   </ol>
 
-                  <div className="mt-5 rounded-2xl border border-pink-100 bg-white px-4 py-3 text-sm font-semibold leading-6 text-[var(--ink)]">
-                    DREVA registra la solicitud y muestra el avance del proceso.
+                  <div className="mt-4 flex gap-3 rounded-dreva-card bg-dreva-soft px-3.5 py-3">
+                    <User className="mt-0.5 h-4 w-4 shrink-0 text-dreva-action" strokeWidth={2} />
+                    <div>
+                      <p className="text-sm font-semibold leading-6 text-dreva-text">
+                        ¿Dónde veo mi solicitud y mi PIN?
+                      </p>
+                      <p className="mt-0.5 text-sm leading-6 text-dreva-text-muted">
+                        Entrá a Perfil → Mis reservas para seguir tu solicitud y
+                        encontrar tu PIN cuando esté disponible.
+                      </p>
+                    </div>
                   </div>
 
-                  <label className="mt-5 flex gap-3 rounded-2xl border border-pink-100 bg-white px-4 py-3 text-sm font-medium leading-6 text-[var(--ink)]">
+                  <label className="mt-4 flex gap-3 rounded-dreva-card border border-dreva-border bg-white px-3.5 py-2.5 text-sm font-medium leading-6 text-dreva-text">
                     <input
                       type="checkbox"
                       checked={termsAccepted}
                       onChange={(event) => setTermsAccepted(event.target.checked)}
-                      className="mt-1 h-4 w-4 accent-black"
+                      className="mt-1 h-4 w-4 accent-dreva-action"
                     />
                     <span>
-                      Acepto el proceso de DREVA y entiendo que la cita se
-                      coordina con el local por WhatsApp, y que el retiro final
-                      requiere cedula, contrato fisico y garantia del local.
+                      Entiendo que mi solicitud debe ser aceptada por el local y
+                      que las condiciones del alquiler se acuerdan directamente
+                      con él.
                     </span>
                   </label>
                 </div>
 
-                <div className="mt-5 flex gap-3">
-                  <button
-                    onClick={() => {
-                      setShowLegal(false);
-                      setTermsAccepted(false);
-                    }}
-                    disabled={submitting}
-                    className="flex-1 rounded-2xl border border-pink-200 bg-white px-4 py-3 font-semibold text-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Volver
-                  </button>
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting || !termsAccepted}
-                    className="flex-1 rounded-2xl bg-black px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {submitting ? "Enviando..." : "Confirmar solicitud"}
-                  </button>
+                <div className="shrink-0 border-t border-[#ffd8e6] bg-white px-5 py-4 sm:px-6">
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowLegal(false);
+                        setTermsAccepted(false);
+                      }}
+                      disabled={submitting}
+                      className="flex-1 rounded-full border border-dreva-border bg-white px-4 py-3 font-semibold text-dreva-action transition hover:bg-dreva-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Volver
+                    </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={submitting || !termsAccepted}
+                      className="flex-1 rounded-full bg-dreva-action px-4 py-3 font-semibold text-white transition hover:bg-dreva-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {submitting ? "Enviando..." : "Confirmar solicitud"}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
 
             {requestSent && (
               <div className="p-6">
-                <h2 className="text-2xl font-semibold text-[var(--ink)]">
+                <h2 className="text-2xl font-semibold text-dreva-text">
                   Solicitud enviada
                 </h2>
-                <div className="mt-5 rounded-2xl border border-pink-100 bg-pink-50 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
+                <div className="mt-5 rounded-dreva-card border border-[#ffd8e6] bg-dreva-soft p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-dreva-action">
                     Revision del local
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+                  <p className="mt-2 text-sm leading-6 text-dreva-text-muted">
                     Tu solicitud para {dressName} fue enviada. Cuando el local
                     acepte la disponibilidad, veras tu codigo de confirmacion
                     en Mis Reservas.
@@ -316,7 +385,7 @@ if (manualBlocks && manualBlocks.length > 0) {
 
                 <button
                   onClick={resetModal}
-                  className="mt-6 w-full rounded-2xl border border-pink-200 px-4 py-3 font-semibold text-[var(--primary)]"
+                  className="mt-6 w-full rounded-full border border-dreva-border bg-white px-4 py-3 font-semibold text-dreva-action transition hover:bg-dreva-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
                 >
                   Cerrar
                 </button>
