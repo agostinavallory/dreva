@@ -5,14 +5,18 @@ import Link from "next/link";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  BadgeCheck,
+  CalendarCheck,
   CalendarDays,
   ChevronDown,
   Clock,
+  MessageCircle,
+  Send,
   Store,
   Tag,
 } from "lucide-react";
 
-import { Navbar } from "@/app/components/Navbar";
+import { ProfileNavbar } from "@/app/components/ProfileNavbar";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -77,13 +81,19 @@ const STATUS_LABELS: Record<ReservationStatus, string> = {
 };
 
 const STATUS_STYLES: Record<ReservationStatus, string> = {
-  pending: "border-amber-100 bg-amber-50 text-amber-700",
-  accepted: "border-emerald-100 bg-emerald-50 text-emerald-700",
-  appointment_scheduled: "border-sky-100 bg-sky-50 text-sky-700",
-  confirmed: "border-fuchsia-100 bg-fuchsia-50 text-fuchsia-700",
-  completed: "border-pink-100 bg-pink-50 text-[var(--primary)]",
-  cancelled: "border-rose-100 bg-rose-50 text-rose-700",
-  expired: "border-zinc-200 bg-zinc-100 text-zinc-600",
+  pending:
+    "border-dreva-warning/25 bg-dreva-warning-bg text-dreva-warning",
+  accepted:
+    "border-dreva-success/25 bg-dreva-success-bg text-dreva-success",
+  appointment_scheduled:
+    "border-dreva-appointment/25 bg-dreva-appointment-bg text-dreva-appointment",
+  confirmed: "border-transparent bg-dreva-success text-white",
+  completed:
+    "border-dreva-success/25 bg-dreva-success-bg text-dreva-success",
+  cancelled:
+    "border-dreva-error/25 bg-dreva-error-bg text-dreva-error",
+  expired:
+    "border-dreva-neutral/25 bg-dreva-neutral-bg text-dreva-neutral",
 };
 
 const ACTION_REQUIRED_STATUSES: ReservationStatus[] = [
@@ -487,10 +497,10 @@ export default function MyReservationsPage() {
 
   if (authLoading || loading) {
     return (
-      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-        <Navbar />
-        <section className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center px-5">
-          <p className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-[var(--muted)] shadow-sm">
+      <main className="min-h-screen bg-dreva-background text-dreva-text">
+        <ProfileNavbar />
+        <section className="mx-auto flex min-h-[70vh] w-full max-w-[1280px] items-center justify-center px-5 lg:w-[88%]">
+          <p className="rounded-full border border-dreva-border bg-white px-5 py-3 text-sm font-semibold text-dreva-text-muted shadow-dreva-sm">
             Cargando tus reservas...
           </p>
         </section>
@@ -500,10 +510,10 @@ export default function MyReservationsPage() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-        <Navbar />
-        <section className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center px-5">
-          <p className="text-sm font-medium text-[var(--muted)]">
+      <main className="min-h-screen bg-dreva-background text-dreva-text">
+        <ProfileNavbar />
+        <section className="mx-auto flex min-h-[70vh] w-full max-w-[1280px] items-center justify-center px-5 lg:w-[88%]">
+          <p className="text-sm font-medium text-dreva-text-muted">
             Redirigiendo a inicio de sesión...
           </p>
         </section>
@@ -512,34 +522,65 @@ export default function MyReservationsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <Navbar />
+    <main className="relative min-h-screen bg-dreva-background text-dreva-text">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[300px] overflow-hidden"
+      >
+        <svg
+          className="absolute inset-x-0 bottom-0 h-full w-full"
+          viewBox="0 0 1440 300"
+          preserveAspectRatio="none"
+          fill="none"
+        >
+          <path
+            d="M0 300V186c148-40 268-6 402 32 150 42 268 60 420 18 168-46 300-96 618-52v116H0Z"
+            fill="#fff0f6"
+          />
+          <path
+            d="M0 300v-84c190-44 320 6 470 40 168 38 300 42 452 2 176-46 316-88 518-52v94H0Z"
+            fill="#fbe3ef"
+            opacity="0.85"
+          />
+          <path
+            d="M0 300v-44c240-34 380 20 560 36 190 18 340-20 520-40 150-16 260-10 360 4v44H0Z"
+            fill="#ff5ca8"
+            opacity="0.07"
+          />
+        </svg>
+      </div>
 
-      <section className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-8 lg:px-10">
-        <div className="mb-10">
-          <h1 className="text-3xl font-bold tracking-tight text-[#17151b] sm:text-4xl">
-            Mis reservas
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6f6971] sm:text-base">
-            Segui en un solo lugar todo lo que esta pasando con tus vestidos.
-          </p>
-        </div>
+      <div className="relative z-10">
+        <ProfileNavbar />
+
+        <section className="mx-auto w-full max-w-[1280px] px-5 pb-24 pt-6 sm:px-8 lg:w-[88%] lg:px-0 lg:pt-7">
+          <header className="mb-8">
+            <h1 className="text-[30px] font-bold tracking-tight text-[#211d26] sm:text-[34px]">
+              Mis reservas
+            </h1>
+            <p className="mt-2 max-w-2xl text-[15px] leading-6 text-[#635b66] sm:text-base">
+              Seguí en un solo lugar todo lo que está pasando con tus vestidos.
+            </p>
+          </header>
 
         {errorMessage ? (
-          <div className="rounded-3xl border border-rose-100 bg-white p-6 text-sm font-medium text-rose-700 shadow-sm">
+          <div className="rounded-dreva-dialog border border-dreva-border bg-white p-6 text-sm font-medium text-dreva-error shadow-dreva-sm sm:max-w-2xl">
             {errorMessage}
           </div>
         ) : reservations.length === 0 ? (
-          <div className="rounded-3xl border border-pink-100 bg-white p-7 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold text-[var(--ink)]">
+          <div className="rounded-dreva-dialog border border-[#ffd8e6] bg-white px-6 py-7 text-center shadow-dreva-sm sm:px-8 sm:py-8">
+            <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-dreva-soft text-dreva-brand">
+              <CalendarDays className="h-6 w-6" strokeWidth={2} />
+            </span>
+            <h2 className="text-2xl font-semibold text-dreva-text">
               Aun no tienes reservas
             </h2>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-dreva-text-muted">
               Cuando solicites un vestido, lo veras aqui.
             </p>
             <Link
               href="/"
-              className="mt-6 inline-flex rounded-2xl bg-black px-5 py-3 text-sm font-semibold text-white transition hover:opacity-80"
+              className="mt-6 inline-flex rounded-full bg-dreva-action px-6 py-3 text-sm font-semibold text-white transition hover:bg-dreva-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
             >
               Explorar vestidos
             </Link>
@@ -548,6 +589,9 @@ export default function MyReservationsPage() {
           <div className="flex flex-col gap-4">
             {pendingReservations.length > 0 && (
               <ReservationSection
+                icon={
+                  <Send className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
+                }
                 title="Solicitudes enviadas"
                 description="Estamos esperando la respuesta del local."
                 count={pendingReservations.length}
@@ -568,6 +612,13 @@ export default function MyReservationsPage() {
 
             {acceptedReservations.length > 0 && (
               <ReservationSection
+                icon={
+                  <MessageCircle
+                    className="h-5 w-5"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                }
                 title="Por coordinar"
                 description="El local aceptó tu solicitud. Coordiná tu cita."
                 count={acceptedReservations.length}
@@ -588,6 +639,13 @@ export default function MyReservationsPage() {
 
             {upcomingAppointmentsReservations.length > 0 && (
               <ReservationSection
+                icon={
+                  <CalendarCheck
+                    className="h-5 w-5"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                }
                 title="Citas agendadas"
                 description="Ya tenés una cita agendada con el local."
                 count={upcomingAppointmentsReservations.length}
@@ -608,6 +666,13 @@ export default function MyReservationsPage() {
 
             {confirmedReservations.length > 0 && (
               <ReservationSection
+                icon={
+                  <BadgeCheck
+                    className="h-5 w-5"
+                    strokeWidth={2}
+                    aria-hidden="true"
+                  />
+                }
                 title="Reservas confirmadas"
                 description="Tu vestido ya está confirmado para tu evento."
                 count={confirmedReservations.length}
@@ -628,31 +693,33 @@ export default function MyReservationsPage() {
 
             <Link
               href="/my-reservations/history"
-              className="flex w-full items-center gap-3 rounded-[1.25rem] border border-[#eee4e9] bg-white p-4 shadow-[0_8px_26px_rgba(43,43,43,0.05)] transition hover:bg-[#fff8fa]"
+              className="flex w-full items-center gap-3 rounded-dreva-card border border-dreva-border bg-white px-4 py-4 shadow-dreva-sm transition hover:border-[#f3c7d6] hover:bg-dreva-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30 sm:px-5"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#ffe7f0]">
-                <Clock className="h-5 w-5 text-[#ff2f78]" strokeWidth={2} />
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-dreva-soft text-dreva-brand">
+                <Clock className="h-5 w-5" strokeWidth={2} aria-hidden="true" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-base font-bold text-[#17151b]">
+                <span className="block text-base font-bold text-dreva-text">
                   Historial
                 </span>
-                <span className="block text-sm text-[#6f6971]">
+                <span className="block text-sm text-dreva-text-muted">
                   Consultá tus reservas anteriores.
                 </span>
               </span>
-              <span className="shrink-0 rounded-full border border-[#ffd4e2] bg-[#fff7fa] px-3 py-1.5 text-xs font-semibold text-[#ff2f78]">
+              <span className="shrink-0 rounded-full border border-[#f3c7d6] bg-white px-3 py-1.5 text-xs font-semibold text-dreva-action">
                 Ver historial
               </span>
             </Link>
           </div>
         )}
-      </section>
+        </section>
+      </div>
     </main>
   );
 }
 
 function ReservationSection({
+  icon,
   title,
   description,
   count,
@@ -660,6 +727,7 @@ function ReservationSection({
   onToggle,
   children,
 }: {
+  icon?: ReactNode;
   title: string;
   description?: string;
   count: number;
@@ -668,38 +736,46 @@ function ReservationSection({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_12px_38px_rgba(43,43,43,0.06)]">
+    <section className="overflow-hidden rounded-dreva-card border border-[#ffd8e6] bg-white shadow-dreva-sm transition hover:border-[#f3c7d6] hover:shadow-dreva-md">
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="flex w-full flex-col gap-1.5 px-5 py-4 text-left transition hover:bg-[#fff8fa] sm:px-6"
+        className="flex w-full items-start gap-3 px-4 py-4 text-left transition hover:bg-dreva-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/30 sm:gap-4 sm:px-6 sm:py-5"
       >
-        <span className="flex items-center justify-between gap-4">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-dreva-soft text-dreva-brand">
+          {icon}
+        </span>
+
+        <span className="min-w-0 flex-1">
           <span className="flex min-w-0 items-center gap-3">
-            <span className="truncate text-lg font-bold text-[#17151b] sm:text-xl">
+            <span className="truncate text-lg font-bold text-dreva-text sm:text-xl">
               {title}
             </span>
             {count > 0 && (
-              <span className="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-[#ffe7f0] px-2 text-xs font-bold text-[#ff2f78]">
+              <span className="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-dreva-soft px-2 text-xs font-bold text-dreva-action">
                 {count}
               </span>
             )}
           </span>
-          <ChevronDown
-            className={`h-5 w-5 shrink-0 text-[#ff2f78] transition-transform duration-200 ${
-              open ? "rotate-0" : "-rotate-90"
-            }`}
-            strokeWidth={2}
-          />
+          {description ? (
+            <span className="mt-1 block text-sm leading-5 text-dreva-text-muted">
+              {description}
+            </span>
+          ) : null}
         </span>
-        {description ? (
-          <span className="text-sm leading-5 text-[#6f6971]">{description}</span>
-        ) : null}
+
+        <ChevronDown
+          className={`mt-1 h-5 w-5 shrink-0 text-dreva-brand transition-transform duration-200 ${
+            open ? "rotate-0" : "-rotate-90"
+          }`}
+          strokeWidth={2}
+          aria-hidden="true"
+        />
       </button>
 
       {open && (
-        <div className="border-t border-[#f1e9ef] px-5 pb-5 pt-4 sm:px-6">
+        <div className="border-t border-dreva-border px-4 pb-5 pt-4 sm:px-6">
           <div className="space-y-4">{children}</div>
         </div>
       )}
@@ -725,24 +801,24 @@ function ReservationCard({
   const appointmentTime = formatAppointmentTime(reservation.appointment_date);
 
   return (
-    <article className="flex flex-col overflow-hidden rounded-[1.5rem] border border-[#eee4e9] bg-white shadow-[0_12px_38px_rgba(43,43,43,0.06)] md:flex-row">
+    <article className="flex flex-col overflow-hidden rounded-dreva-card border border-dreva-border bg-white shadow-dreva-sm md:flex-row">
       <DressImage
         image={reservation.vestidos?.imagen}
         dressName={dressName}
         priority={priority}
-        className="h-44 w-full shrink-0 md:h-auto md:min-h-[200px] md:w-60"
-        sizes="(max-width: 767px) 100vw, 240px"
+        className="h-44 w-full shrink-0 md:h-auto md:min-h-[190px] md:w-56"
+        sizes="(max-width: 767px) 100vw, 224px"
       />
 
-      <div className="flex min-w-0 flex-1 flex-col p-5 sm:p-6">
+      <div className="flex min-w-0 flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <h3 className="truncate text-lg font-bold leading-tight text-[#17151b]">
+            <h3 className="truncate text-lg font-bold leading-tight text-dreva-text">
               {dressName}
             </h3>
-            <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-[#6f6971]">
+            <p className="mt-0.5 flex items-center gap-1.5 truncate text-sm text-dreva-text-muted">
               <Store
-                className="h-4 w-4 shrink-0 text-[#ff2f78]"
+                className="h-4 w-4 shrink-0 text-dreva-brand"
                 strokeWidth={2}
                 aria-hidden="true"
               />
@@ -762,7 +838,7 @@ function ReservationCard({
               <MiniInfo
                 icon={
                   <CalendarDays
-                    className="h-4 w-4 shrink-0 text-[#ff2f78]"
+                    className="h-4 w-4 shrink-0 text-dreva-brand"
                     strokeWidth={2}
                   />
                 }
@@ -772,7 +848,7 @@ function ReservationCard({
               <MiniInfo
                 icon={
                   <Tag
-                    className="h-4 w-4 shrink-0 text-[#ff2f78]"
+                    className="h-4 w-4 shrink-0 text-dreva-brand"
                     strokeWidth={2}
                   />
                 }
@@ -789,7 +865,7 @@ function ReservationCard({
               <MiniInfo
                 icon={
                   <CalendarDays
-                    className="h-4 w-4 shrink-0 text-[#ff2f78]"
+                    className="h-4 w-4 shrink-0 text-dreva-brand"
                     strokeWidth={2}
                   />
                 }
@@ -800,11 +876,11 @@ function ReservationCard({
           ) : isAppointmentScheduled ? (
             <div className="grid gap-3 md:grid-cols-[minmax(0,auto)_minmax(0,1fr)] md:items-start">
               <div className="flex min-w-0 flex-col gap-3">
-                <div className="w-fit rounded-2xl bg-[#faf4f7] px-4 py-3">
-                  <p className="text-sm font-semibold text-[#252329]">
+                <div className="w-fit rounded-2xl bg-dreva-soft px-4 py-3">
+                  <p className="text-sm font-semibold text-dreva-text">
                     Cita agendada.
                   </p>
-                  <p className="mt-0.5 max-w-[16rem] text-sm text-[#6f6971]">
+                  <p className="mt-0.5 max-w-[16rem] text-sm text-dreva-text-muted">
                     Asistí al local en la fecha y hora indicadas y presentá tu
                     PIN.
                   </p>
@@ -815,7 +891,7 @@ function ReservationCard({
                     fit
                     icon={
                       <CalendarDays
-                        className="h-4 w-4 shrink-0 text-[#ff2f78]"
+                        className="h-4 w-4 shrink-0 text-dreva-brand"
                         strokeWidth={2}
                       />
                     }
@@ -828,7 +904,7 @@ function ReservationCard({
                       fit
                       icon={
                         <Clock
-                          className="h-4 w-4 shrink-0 text-[#ff2f78]"
+                          className="h-4 w-4 shrink-0 text-dreva-brand"
                           strokeWidth={2}
                         />
                       }
@@ -851,11 +927,11 @@ function ReservationCard({
             </div>
           ) : (
             <>
-              <div className="rounded-2xl bg-[#faf4f7] px-4 py-3">
-                <p className="text-sm font-semibold text-[#252329]">
+              <div className="rounded-2xl bg-dreva-soft px-4 py-3">
+                <p className="text-sm font-semibold text-dreva-text">
                   El local aceptó tu solicitud.
                 </p>
-                <p className="mt-0.5 text-sm text-[#6f6971]">
+                <p className="mt-0.5 text-sm text-dreva-text-muted">
                   Escribile al local por WhatsApp y coordiná tu cita de prueba.
                 </p>
               </div>
@@ -896,7 +972,7 @@ function DressImage({
   sizes: string;
 }) {
   return (
-    <div className={`relative overflow-hidden bg-pink-50 ${className}`}>
+    <div className={`relative overflow-hidden bg-dreva-soft ${className}`}>
       <SharedDressImage
         src={image}
         alt={dressName}
@@ -905,7 +981,7 @@ function DressImage({
         sizes={sizes}
         className="object-cover"
         fallback={
-          <div className="grid h-full place-items-center text-lg font-semibold tracking-[0.32em] text-[var(--primary)]">
+          <div className="grid h-full place-items-center text-lg font-semibold tracking-[0.32em] text-dreva-brand">
             DREVA
           </div>
         }
@@ -927,14 +1003,14 @@ function MiniInfo({
 }) {
   return (
     <div
-      className={`rounded-2xl border border-[#f1dfe7] bg-[#fff8fa] px-4 py-2.5 ${
+      className={`rounded-dreva-control border border-[#ffd8e6] bg-dreva-soft px-4 py-2.5 ${
         fit ? "w-fit" : ""
       }`}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-[#a49aa4]">
+      <p className="text-[11px] font-semibold uppercase tracking-wide text-dreva-text-muted">
         {label}
       </p>
-      <p className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-[#252329]">
+      <p className="mt-0.5 flex items-center gap-1.5 text-sm font-semibold text-dreva-text">
         {icon}
         {value}
       </p>
@@ -945,21 +1021,21 @@ function MiniInfo({
 function PinBlock({ pin, large = false }: { pin: string; large?: boolean }) {
   return (
     <div
-      className={`w-full rounded-2xl border-2 border-[#ffd4e2] bg-[#fff7fa] text-center shadow-[0_6px_20px_rgba(255,47,120,0.06)] ${
+      className={`w-full rounded-dreva-card border-2 border-[#ffd4e2] bg-dreva-soft text-center shadow-dreva-sm ${
         large ? "max-w-[22rem] px-6 py-5" : "max-w-xs px-5 py-4"
       }`}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff2f78]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-dreva-action">
         Tu PIN
       </p>
       <p
-        className={`mt-1.5 font-mono font-bold tracking-[0.22em] text-[#252329] ${
+        className={`mt-1.5 font-mono font-bold tracking-[0.22em] text-dreva-text ${
           large ? "text-3xl sm:text-4xl" : "text-3xl"
         }`}
       >
         {pin}
       </p>
-      <p className="mt-1 text-xs font-medium text-[#6f6971]">
+      <p className="mt-1 text-xs font-medium text-dreva-text-muted">
         Muestralo en el local.
       </p>
     </div>
@@ -969,17 +1045,17 @@ function PinBlock({ pin, large = false }: { pin: string; large?: boolean }) {
 function PinUnavailableBlock({ large = false }: { large?: boolean }) {
   return (
     <div
-      className={`w-full rounded-2xl border-2 border-[#ffd4e2] bg-[#fff7fa] text-center shadow-[0_6px_20px_rgba(255,47,120,0.06)] ${
+      className={`w-full rounded-dreva-card border-2 border-[#ffd4e2] bg-dreva-soft text-center shadow-dreva-sm ${
         large ? "max-w-[22rem] px-6 py-5" : "max-w-xs px-5 py-4"
       }`}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#ff2f78]">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-dreva-action">
         Tu PIN
       </p>
-      <p className="mt-1.5 text-sm font-semibold text-[#252329]">
+      <p className="mt-1.5 text-sm font-semibold text-dreva-text">
         No pudimos cargar tu PIN en este momento.
       </p>
-      <p className="mt-1 text-xs font-medium text-[#6f6971]">
+      <p className="mt-1 text-xs font-medium text-dreva-text-muted">
         Recargá la página para intentarlo de nuevo.
       </p>
     </div>
