@@ -4,7 +4,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 
-export function ProfileNavbar() {
+export type ProfileNavbarProps = {
+  backLabel?: string;
+  backHref?: string;
+};
+
+export function ProfileNavbar({
+  backLabel = "Volver al catálogo",
+  backHref = "/",
+}: ProfileNavbarProps = {}) {
   return (
     <nav className="sticky top-0 z-50 border-b border-[var(--dreva-color-border)] bg-white/80 backdrop-blur">
       <div
@@ -90,14 +98,14 @@ export function ProfileNavbar() {
         </Link>
 
         <Link
-          href="/"
+          href={backHref}
           className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full border border-[#f3c7d6] bg-white/80 px-5 py-3 text-sm font-semibold text-[var(--dreva-color-action)] shadow-dreva-xs backdrop-blur transition hover:border-[var(--dreva-color-brand)] hover:bg-[var(--dreva-color-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--dreva-color-focus)]/40 sm:px-6 sm:py-3 sm:text-base"
         >
           <ArrowLeft
             className="h-5 w-5 shrink-0 text-[var(--dreva-color-brand)]"
             strokeWidth={2}
           />
-          Volver al catálogo
+          {backLabel}
         </Link>
       </div>
     </nav>

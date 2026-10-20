@@ -2,11 +2,19 @@
 
 import { DressImage } from "@/app/components/DressImage";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, Store, Tag } from "lucide-react";
+import {
+  CalendarDays,
+  CircleCheck,
+  CircleX,
+  Clock3,
+  History as HistoryIcon,
+  Store,
+  Tag,
+} from "lucide-react";
 
-import { Navbar } from "@/app/components/Navbar";
+import { ProfileNavbar } from "@/app/components/ProfileNavbar";
 import { useAuth } from "@/app/providers/AuthProvider";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -53,9 +61,15 @@ const STATUS_LABELS: Record<HistoryStatus, string> = {
 };
 
 const STATUS_STYLES: Record<HistoryStatus, string> = {
-  completed: "border-pink-100 bg-pink-50 text-[#ff2f78]",
-  cancelled: "border-rose-100 bg-rose-50 text-rose-700",
-  expired: "border-zinc-200 bg-zinc-100 text-zinc-600",
+  completed: "border-dreva-success/25 bg-dreva-success-bg text-dreva-success",
+  cancelled: "border-dreva-error/25 bg-dreva-error-bg text-dreva-error",
+  expired: "border-dreva-neutral/25 bg-dreva-neutral-bg text-dreva-neutral",
+};
+
+const STATUS_ICONS: Record<HistoryStatus, ReactNode> = {
+  completed: <CircleCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />,
+  cancelled: <CircleX className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />,
+  expired: <Clock3 className="h-3.5 w-3.5 shrink-0" strokeWidth={2} aria-hidden="true" />,
 };
 
 function formatDate(value: string | null) {
@@ -245,10 +259,10 @@ export default function HistoryPage() {
 
   if (authLoading || loading) {
     return (
-      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-        <Navbar />
-        <section className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center px-5">
-          <p className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-[var(--muted)] shadow-sm">
+      <main className="min-h-screen bg-dreva-background text-dreva-text">
+        <ProfileNavbar backLabel="Volver a Mis reservas" backHref="/my-reservations" />
+        <section className="mx-auto flex min-h-[70vh] w-full max-w-[1280px] items-center justify-center px-5 lg:w-[88%]">
+          <p className="rounded-full border border-dreva-border bg-white px-5 py-3 text-sm font-semibold text-dreva-text-muted shadow-dreva-sm">
             Cargando tu historial...
           </p>
         </section>
@@ -258,10 +272,10 @@ export default function HistoryPage() {
 
   if (!user) {
     return (
-      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-        <Navbar />
-        <section className="mx-auto flex min-h-[70vh] max-w-7xl items-center justify-center px-5">
-          <p className="text-sm font-medium text-[var(--muted)]">
+      <main className="min-h-screen bg-dreva-background text-dreva-text">
+        <ProfileNavbar backLabel="Volver a Mis reservas" backHref="/my-reservations" />
+        <section className="mx-auto flex min-h-[70vh] w-full max-w-[1280px] items-center justify-center px-5 lg:w-[88%]">
+          <p className="text-sm font-medium text-dreva-text-muted">
             Redirigiendo a inicio de sesión...
           </p>
         </section>
@@ -270,53 +284,83 @@ export default function HistoryPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      <Navbar />
-
-      <section className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 sm:px-8 lg:px-10">
-        <Link
-          href="/my-reservations"
-          className="mb-6 inline-flex rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-[var(--ink)] shadow-sm transition hover:text-[#ff2f78]"
+    <main className="relative min-h-screen bg-dreva-background text-dreva-text">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[300px] overflow-hidden"
+      >
+        <svg
+          className="absolute inset-x-0 bottom-0 h-full w-full"
+          viewBox="0 0 1440 300"
+          preserveAspectRatio="none"
+          fill="none"
         >
-          Volver a Mis reservas
-        </Link>
+          <path
+            d="M0 300V186c148-40 268-6 402 32 150 42 268 60 420 18 168-46 300-96 618-52v116H0Z"
+            fill="#fff0f6"
+          />
+          <path
+            d="M0 300v-84c190-44 320 6 470 40 168 38 300 42 452 2 176-46 316-88 518-52v94H0Z"
+            fill="#fbe3ef"
+            opacity="0.85"
+          />
+          <path
+            d="M0 300v-44c240-34 380 20 560 36 190 18 340-20 520-40 150-16 260-10 360 4v44H0Z"
+            fill="#ff5ca8"
+            opacity="0.07"
+          />
+        </svg>
+      </div>
 
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-[#17151b] sm:text-4xl">
-            Historial
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6f6971] sm:text-base">
-            Consultá tus reservas anteriores.
-          </p>
-        </header>
+      <div className="relative z-10">
+        <ProfileNavbar backLabel="Volver a Mis reservas" backHref="/my-reservations" />
 
-        {errorMessage ? (
-          <div className="rounded-3xl border border-rose-100 bg-white p-6 text-sm font-medium text-rose-700 shadow-sm">
-            {errorMessage}
-          </div>
-        ) : reservations.length === 0 ? (
-          <div className="rounded-3xl border border-pink-100 bg-white p-7 text-center shadow-sm">
-            <h2 className="text-2xl font-semibold text-[var(--ink)]">
-              Todavía no tenés reservas anteriores.
-            </h2>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[var(--muted)]">
-              Cuando una reserva se finalice, la vas a encontrar acá.
+        <section className="mx-auto w-full max-w-[1280px] px-5 pb-24 pt-6 sm:px-8 lg:w-[88%] lg:px-0 lg:pt-7">
+          <header className="mb-8">
+            <h1 className="text-[30px] font-bold tracking-tight text-[#211d26] sm:text-[34px]">
+              Historial de reservas
+            </h1>
+            <p className="mt-2 max-w-2xl text-[15px] leading-6 text-[#635b66] sm:text-base">
+              Consultá tus reservas anteriores. Acá podés ver las solicitudes que ya
+              finalizaron, fueron canceladas o vencieron.
             </p>
-            <Link
-              href="/my-reservations"
-              className="mt-6 inline-flex rounded-2xl bg-black px-5 py-3 text-sm font-semibold text-white transition hover:opacity-80"
+          </header>
+
+          {errorMessage ? (
+            <div
+              role="alert"
+              className="rounded-dreva-dialog border border-dreva-border bg-white p-6 text-sm font-medium text-dreva-error shadow-dreva-sm sm:max-w-2xl"
             >
-              Volver a Mis reservas
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {reservations.map((reservation) => (
-              <HistoryCard key={reservation.id} reservation={reservation} />
-            ))}
-          </div>
-        )}
-      </section>
+              {errorMessage}
+            </div>
+          ) : reservations.length === 0 ? (
+            <div className="rounded-dreva-dialog border border-[#ffd8e6] bg-white px-6 py-7 text-center shadow-dreva-sm sm:px-8 sm:py-8">
+              <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-dreva-soft text-dreva-brand">
+                <HistoryIcon className="h-6 w-6" strokeWidth={2} aria-hidden="true" />
+              </span>
+              <h2 className="text-2xl font-semibold text-dreva-text">
+                Aún no tenés reservas en tu historial
+              </h2>
+              <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-dreva-text-muted">
+                Acá aparecerán las reservas que ya finalizaron, fueron canceladas o
+                vencieron.
+              </p>
+              <Link
+                href="/my-reservations"
+                className="mt-6 inline-flex rounded-full bg-dreva-action px-6 py-3 text-sm font-semibold text-white transition hover:bg-dreva-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
+              >
+                Volver a Mis reservas
+              </Link>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {reservations.map((reservation) => (
+                <HistoryCard key={reservation.id} reservation={reservation} />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
     </main>
   );
 }
@@ -328,61 +372,75 @@ function HistoryCard({ reservation }: { reservation: HistoryReservation }) {
   const priceLabel = priceValue ? `Gs. ${priceValue}` : "Consultar precio";
 
   return (
-    <article className="flex gap-3 rounded-[1.25rem] border border-[#eee4e9] bg-white p-3 shadow-[0_8px_26px_rgba(43,43,43,0.05)] sm:gap-4 sm:p-4">
-      <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl bg-pink-50 sm:h-28 sm:w-24">
+    <article className="flex flex-col gap-3 rounded-dreva-card border border-[#ffd8e6] bg-white p-3 shadow-dreva-sm transition hover:border-[#f3c7d6] sm:flex-row sm:items-stretch sm:gap-4">
+      <div className="relative h-44 w-full shrink-0 overflow-hidden rounded-xl bg-dreva-soft sm:h-[204px] sm:w-[168px]">
         <DressImage
           src={reservation.vestidos?.imagen}
           alt={dressName}
           fill
-          sizes="96px"
-          className="object-cover"
+          sizes="(min-width: 640px) 168px, 100vw"
+          className="object-contain"
           fallback={
-            <div className="grid h-full place-items-center text-xs font-semibold tracking-[0.3em] text-[#ff2f78]">
+            <div className="grid h-full place-items-center text-xs font-semibold tracking-[0.3em] text-dreva-brand">
               DREVA
             </div>
           }
         />
       </div>
 
-      <div className="min-w-0 flex-1 py-0.5">
+      <div className="flex min-w-0 flex-1 flex-col py-0.5">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="truncate text-sm font-bold leading-tight text-[#17151b] sm:text-base">
-            {dressName}
-          </h3>
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-bold leading-tight text-dreva-text sm:text-base">
+              {dressName}
+            </h3>
+            <p className="mt-1 flex items-center gap-1.5 text-sm text-dreva-text-muted">
+              <Store
+                className="h-4 w-4 shrink-0 text-dreva-brand"
+                strokeWidth={2}
+                aria-hidden="true"
+              />
+              <span className="truncate">{localName}</span>
+            </p>
+          </div>
+
           <span
-            className={`w-fit shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${STATUS_STYLES[reservation.status]}`}
+            className={`flex w-fit shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${STATUS_STYLES[reservation.status]}`}
           >
+            {STATUS_ICONS[reservation.status]}
             {STATUS_LABELS[reservation.status]}
           </span>
         </div>
 
-        <div className="mt-3 space-y-1.5">
-          <p className="flex items-center gap-1.5 text-sm text-[#6f6971]">
-            <Store
-              className="h-4 w-4 shrink-0 text-[#ff2f78]"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-            <span className="truncate">{localName}</span>
-          </p>
-          <p className="flex items-center gap-1.5 text-sm text-[#6f6971]">
-            <CalendarDays
-              className="h-4 w-4 shrink-0 text-[#ff2f78]"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-            <span className="truncate">{formatDate(reservation.event_date)}</span>
-          </p>
-          <p className="flex items-center gap-1.5 text-sm font-semibold text-[#252329]">
-            <Tag
-              className="h-4 w-4 shrink-0 text-[#ff2f78]"
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-            <span className="truncate">{priceLabel}</span>
-          </p>
+        <div className="mt-3 grid grid-cols-1 gap-2">
+          <HistoryInfo
+            icon={<CalendarDays className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />}
+            label="Fecha del evento"
+            value={formatDate(reservation.event_date)}
+          />
+          <HistoryInfo
+            icon={<Tag className="h-3.5 w-3.5" strokeWidth={2} aria-hidden="true" />}
+            label="Precio"
+            value={priceLabel}
+          />
         </div>
       </div>
     </article>
+  );
+}
+
+function HistoryInfo({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
+  return (
+    <div className="flex min-h-[46px] min-w-0 max-w-full items-center gap-2 rounded-dreva-control border border-dreva-border/70 bg-dreva-soft px-3 py-1.5">
+      <span className="shrink-0 text-dreva-brand">{icon}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[10px] font-semibold uppercase tracking-wide text-dreva-text-muted">
+          {label}
+        </span>
+        <span className="block truncate text-[13px] font-semibold text-dreva-text">
+          {value}
+        </span>
+      </span>
+    </div>
   );
 }
