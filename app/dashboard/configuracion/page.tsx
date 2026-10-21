@@ -88,7 +88,7 @@ export default function ConfiguracionPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--dreva-color-background)] bg-[radial-gradient(120%_80%_at_0%_0%,#fff0f6_0%,rgba(255,240,246,0)_55%),radial-gradient(120%_80%_at_100%_0%,#ffe3f1_0%,rgba(255,227,241,0)_50%),radial-gradient(140%_100%_at_50%_100%,#fff0f6_0%,rgba(252,249,251,0)_60%),linear-gradient(180deg,#fffafd_0%,#fcf9fb_45%,#fdf2f9_100%)] px-5">
         <p className="text-sm font-medium text-[var(--muted)]">
           Cargando configuración...
         </p>
@@ -98,7 +98,7 @@ export default function ConfiguracionPage() {
 
   if (!local) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--dreva-color-background)] bg-[radial-gradient(120%_80%_at_0%_0%,#fff0f6_0%,rgba(255,240,246,0)_55%),radial-gradient(120%_80%_at_100%_0%,#ffe3f1_0%,rgba(255,227,241,0)_50%),radial-gradient(140%_100%_at_50%_100%,#fff0f6_0%,rgba(252,249,251,0)_60%),linear-gradient(180deg,#fffafd_0%,#fcf9fb_45%,#fdf2f9_100%)] px-5">
         <p className="text-sm font-medium text-[#d92f68]">
           No se encontró el local para esta cuenta.
         </p>
@@ -128,7 +128,7 @@ export default function ConfiguracionPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)] px-4 py-5 text-[var(--foreground)] sm:px-8">
+    <main className="min-h-screen bg-[var(--dreva-color-background)] bg-[radial-gradient(120%_80%_at_0%_0%,#fff0f6_0%,rgba(255,240,246,0)_55%),radial-gradient(120%_80%_at_100%_0%,#ffe3f1_0%,rgba(255,227,241,0)_50%),radial-gradient(140%_100%_at_50%_100%,#fff0f6_0%,rgba(252,249,251,0)_60%),linear-gradient(180deg,#fffafd_0%,#fcf9fb_45%,#fdf2f9_100%)] px-4 py-5 text-[var(--foreground)] sm:px-8">
       <section className="mx-auto max-w-4xl">
         <DashboardNav />
 

@@ -453,7 +453,7 @@ export default function ReservationPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[var(--background)] px-4 py-5 text-[var(--foreground)] sm:px-8">
+      <main className="min-h-screen bg-[var(--dreva-color-background)] bg-[radial-gradient(120%_80%_at_0%_0%,#fff0f6_0%,rgba(255,240,246,0)_55%),radial-gradient(120%_80%_at_100%_0%,#ffe3f1_0%,rgba(255,227,241,0)_50%),radial-gradient(140%_100%_at_50%_100%,#fff0f6_0%,rgba(252,249,251,0)_60%),linear-gradient(180deg,#fffafd_0%,#fcf9fb_45%,#fdf2f9_100%)] px-4 py-5 text-[var(--foreground)] sm:px-8">
         <section className="mx-auto max-w-5xl">
           <DashboardNav />
           <p className="mt-10 text-sm font-medium text-[var(--muted)]">
@@ -466,7 +466,7 @@ export default function ReservationPage() {
 
   if (!reservation) {
     return (
-      <main className="min-h-screen bg-[var(--background)] px-4 py-5 text-[var(--foreground)] sm:px-8">
+      <main className="min-h-screen bg-[var(--dreva-color-background)] bg-[radial-gradient(120%_80%_at_0%_0%,#fff0f6_0%,rgba(255,240,246,0)_55%),radial-gradient(120%_80%_at_100%_0%,#ffe3f1_0%,rgba(255,227,241,0)_50%),radial-gradient(140%_100%_at_50%_100%,#fff0f6_0%,rgba(252,249,251,0)_60%),linear-gradient(180deg,#fffafd_0%,#fcf9fb_45%,#fdf2f9_100%)] px-4 py-5 text-[var(--foreground)] sm:px-8">
         <section className="mx-auto max-w-5xl">
           <DashboardNav />
           <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-[#eee4e9] bg-white px-6 py-14 text-center shadow-[0_14px_42px_rgba(38,31,36,0.06)]">
@@ -512,7 +512,7 @@ export default function ReservationPage() {
   const priceLabel = formatPrice(reservation.vestidos?.precio ?? null);
 
   return (
-    <main className="min-h-screen bg-[var(--background)] px-4 py-5 text-[var(--foreground)] sm:px-8">
+    <main className="min-h-screen bg-[var(--dreva-color-background)] bg-[radial-gradient(120%_80%_at_0%_0%,#fff0f6_0%,rgba(255,240,246,0)_55%),radial-gradient(120%_80%_at_100%_0%,#ffe3f1_0%,rgba(255,227,241,0)_50%),radial-gradient(140%_100%_at_50%_100%,#fff0f6_0%,rgba(252,249,251,0)_60%),linear-gradient(180deg,#fffafd_0%,#fcf9fb_45%,#fdf2f9_100%)] px-4 py-5 text-[var(--foreground)] sm:px-8">
       <section className="mx-auto max-w-5xl">
         <DashboardNav />
 
