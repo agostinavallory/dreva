@@ -9,12 +9,14 @@ import { useAuth } from "@/app/providers/AuthProvider";
 import { getLocaleStatus } from "@/app/hooks/useIsLocalOwner";
 
 const inputClass =
-  "w-full rounded-xl border border-[#eadfe5] bg-white px-4 py-3.5 text-[15px] font-medium text-[#17151b] outline-none transition placeholder:text-[#b3a9b0] focus:border-[#ff9ec2] focus:ring-4 focus:ring-[#ffe7f0] disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-[16px] border border-[#f3c7d6] bg-white px-4 py-3 text-[15px] text-dreva-text outline-none transition placeholder:text-[#b3a9b0] focus:border-[#d16a97] focus:ring-4 focus:ring-[#ffe7f0] disabled:cursor-not-allowed disabled:opacity-60";
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-bold text-[#4f4951]">{label}</span>
+      <span className="mb-1.5 block text-[13px] font-semibold text-[#4f4951]">
+        {label}
+      </span>
       {children}
     </label>
   );
@@ -71,8 +73,13 @@ export default function LocalRegisterPage() {
 
   if (checking) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5">
-        <p className="text-sm font-medium text-[var(--muted)]">
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(160deg,#fffafd_0%,#ffffff_45%,#fdf4ff_100%)] px-4 py-10 text-dreva-text sm:px-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 bg-[#fffafd] bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url(/backgrounds/login-dreva.png)" }}
+        />
+        <p className="relative z-10 text-[15px] font-medium text-dreva-text-muted">
           Verificando tu cuenta...
         </p>
       </main>
@@ -81,18 +88,24 @@ export default function LocalRegisterPage() {
 
   if (checkFailed) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--background)] px-5">
-        <div className="w-full max-w-md rounded-[1.5rem] border border-[#eee4e9] bg-white px-5 py-8 text-center shadow-[0_14px_42px_rgba(255,45,126,0.07)] sm:px-7">
-          <h1 className="text-lg font-extrabold text-[#17151b]">
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(160deg,#fffafd_0%,#ffffff_45%,#fdf4ff_100%)] px-4 py-10 text-dreva-text sm:px-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 bg-[#fffafd] bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url(/backgrounds/login-dreva.png)" }}
+        />
+
+        <div className="relative z-10 w-full max-w-[520px] rounded-[20px] border border-[#ffd8e6] bg-white px-6 py-6 text-center shadow-[0_18px_60px_rgba(255,92,168,0.1)] sm:px-10">
+          <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-[#211d26]">
             No pudimos verificar tu cuenta
           </h1>
-          <p className="mt-2 text-sm font-medium leading-6 text-[#6d6670]">
+          <p className="mt-2 text-[15px] leading-6 text-dreva-text-muted">
             Revisa tu conexión e intenta de nuevo.
           </p>
           <button
             type="button"
             onClick={handleRetry}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#ff2f78] px-6 py-3 text-sm font-bold text-white shadow-[0_10px_24px_rgba(255,47,120,0.22)] transition hover:-translate-y-0.5 hover:bg-[#ef1f68]"
+            className="mt-6 w-full rounded-[16px] bg-[#c18098] px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_26px_rgba(193,128,152,0.25)] transition hover:bg-[#a96c83] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
           >
             Reintentar
           </button>
@@ -192,71 +205,83 @@ export default function LocalRegisterPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--background)] px-4 py-8 sm:px-8">
-      <section className="mx-auto max-w-md">
-        <header className="mb-6 text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#ff2f78]">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(160deg,#fffafd_0%,#ffffff_45%,#fdf4ff_100%)] px-4 py-10 text-dreva-text sm:px-6">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 bg-[#fffafd] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/backgrounds/login-dreva.png)" }}
+      />
+
+      <section className="relative z-10 w-full max-w-[760px] rounded-[20px] border border-[#ffd8e6] bg-white px-6 py-6 shadow-[0_18px_60px_rgba(255,92,168,0.1)] sm:px-10 sm:py-7">
+        <header className="text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.55em] text-[#d16a97]">
             DREVA
           </p>
 
-          <h1 className="mt-3 text-2xl font-extrabold text-[#17151b] sm:text-3xl">
-            Datos de tu local
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#d16a97]">
+            Paso 2 de 2 · Datos del local
+          </p>
+
+          <h1 className="mt-1.5 text-[26px] font-semibold leading-tight tracking-[-0.02em] text-[#211d26] sm:text-[30px]">
+            Completá los datos de tu local
           </h1>
 
-          <p className="mt-2 text-sm font-medium leading-6 text-[#6d6670]">
-            Con esto creamos tu local y abres tu Dashboard.
+          <p className="mt-1.5 text-[15px] leading-6 text-dreva-text-muted">
+            Agregá la información de tu local para terminar el registro.
           </p>
         </header>
 
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="space-y-5 rounded-[1.5rem] border border-[#eee4e9] bg-white px-5 py-6 shadow-[0_14px_42px_rgba(255,45,126,0.07)] sm:px-7 sm:py-8"
+          className="mt-5 space-y-3"
         >
-          <Field label="Nombre del local">
-            <input
-              className={inputClass}
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej.: Atelier DREVA"
-              disabled={saving}
-            />
-          </Field>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <Field label="Nombre del local">
+              <input
+                className={inputClass}
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                placeholder="Ej.: Atelier DREVA"
+                disabled={saving}
+              />
+            </Field>
 
-          <Field label="Ciudad">
-            <input
-              className={inputClass}
-              value={ciudad}
-              onChange={(e) => setCiudad(e.target.value)}
-              placeholder="Ej.: Asunción"
-              disabled={saving}
-            />
-          </Field>
+            <Field label="Ciudad">
+              <input
+                className={inputClass}
+                value={ciudad}
+                onChange={(e) => setCiudad(e.target.value)}
+                placeholder="Ej.: Asunción"
+                disabled={saving}
+              />
+            </Field>
 
-          <Field label="WhatsApp del local">
-            <input
-              type="tel"
-              className={inputClass}
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="+595 9XX XXX XXX"
-              disabled={saving}
-            />
-          </Field>
+            <Field label="WhatsApp del local">
+              <input
+                type="tel"
+                className={inputClass}
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                placeholder="+595 9XX XXX XXX"
+                disabled={saving}
+              />
+            </Field>
 
-          <Field label="Dirección (opcional)">
-            <input
-              className={inputClass}
-              value={direccion}
-              onChange={(e) => setDireccion(e.target.value)}
-              placeholder="Calle y número"
-              disabled={saving}
-            />
-          </Field>
+            <Field label="Dirección (opcional)">
+              <input
+                className={inputClass}
+                value={direccion}
+                onChange={(e) => setDireccion(e.target.value)}
+                placeholder="Calle y número"
+                disabled={saving}
+              />
+            </Field>
+          </div>
 
           <Field label="Descripción (opcional)">
             <textarea
-              className={`${inputClass} min-h-28 resize-none leading-6`}
+              className={`${inputClass} min-h-[104px] resize-none leading-6`}
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
               placeholder="Contanos de qué se trata tu local..."
@@ -265,7 +290,10 @@ export default function LocalRegisterPage() {
           </Field>
 
           {errorMessage && (
-            <p className="rounded-xl border border-[#f5c6d7] bg-[#fff4f8] px-4 py-3 text-sm font-bold text-[#d92f68]">
+            <p
+              role="alert"
+              className="rounded-[14px] border border-[#f5c6d7] bg-dreva-error-bg px-4 py-3 text-sm font-medium leading-6 text-dreva-error"
+            >
               {errorMessage}
             </p>
           )}
@@ -273,7 +301,7 @@ export default function LocalRegisterPage() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full rounded-full bg-[#ff2f78] px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_rgba(255,47,120,0.22)] transition hover:-translate-y-0.5 hover:bg-[#ef1f68] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-1 w-full rounded-[16px] bg-[#c18098] px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_26px_rgba(193,128,152,0.25)] transition hover:bg-[#a96c83] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "Creando local..." : "Crear mi local"}
           </button>
