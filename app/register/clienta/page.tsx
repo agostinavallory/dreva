@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
 import { supabase } from "@/lib/supabaseClient";
 
@@ -10,6 +11,7 @@ export default function ClientaRegisterPage() {
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -112,63 +114,109 @@ export default function ClientaRegisterPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(135deg,#fff1f7_0%,#ffffff_45%,#fdf2ff_100%)] flex items-center justify-center px-6">
-      <div className="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-[0_20px_80px_rgba(255,92,168,0.12)]">
-        <div className="mb-8 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[var(--primary)]">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[linear-gradient(160deg,#fffafd_0%,#ffffff_45%,#fdf4ff_100%)] px-4 py-10 text-dreva-text sm:px-6">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 bg-[#fffafd] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url(/backgrounds/login-dreva.png)" }}
+      />
+
+      <div className="relative z-10 w-full max-w-[520px] rounded-[20px] border border-[#ffd8e6] bg-white px-6 py-5 shadow-[0_18px_60px_rgba(255,92,168,0.1)] sm:px-10 sm:py-6">
+        <div className="text-center">
+          <p className="text-sm font-semibold uppercase tracking-[0.55em] text-[#d16a97]">
             DREVA
           </p>
 
-          <h1 className="mt-3 text-4xl font-semibold text-[var(--ink)]">
+          <h1 className="mt-3 text-[28px] font-semibold leading-tight tracking-[-0.02em] text-[#211d26] sm:text-[32px]">
             Crea tu cuenta
           </h1>
 
-          <p className="mt-3 text-sm text-[var(--muted)]">
-            Guarda vestidos favoritos y reserva de forma rapida.
+          <p className="mt-1.5 text-[15px] leading-6 text-dreva-text-muted">
+            Guardá vestidos favoritos y reservá de forma rápida.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="mt-5 space-y-3">
+          <label htmlFor="clienta-nombre" className="sr-only">
+            Nombre
+          </label>
           <input
+            id="clienta-nombre"
             type="text"
+            autoComplete="given-name"
             placeholder="Nombre"
-            className="w-full rounded-2xl border border-pink-100 px-5 py-4 outline-none transition focus:border-[var(--primary)]"
+            className="w-full rounded-[16px] border border-[#f3c7d6] bg-white px-4 py-3 text-[15px] text-dreva-text outline-none transition placeholder:text-[#b3a9b0] focus:border-[#d16a97] focus:ring-4 focus:ring-[#ffe7f0]"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
           />
 
+          <label htmlFor="clienta-apellido" className="sr-only">
+            Apellido
+          </label>
           <input
+            id="clienta-apellido"
             type="text"
+            autoComplete="family-name"
             placeholder="Apellido"
-            className="w-full rounded-2xl border border-pink-100 px-5 py-4 outline-none transition focus:border-[var(--primary)]"
+            className="w-full rounded-[16px] border border-[#f3c7d6] bg-white px-4 py-3 text-[15px] text-dreva-text outline-none transition placeholder:text-[#b3a9b0] focus:border-[#d16a97] focus:ring-4 focus:ring-[#ffe7f0]"
             value={apellido}
             onChange={(e) => setApellido(e.target.value)}
           />
 
+          <label htmlFor="clienta-email" className="sr-only">
+            Correo electrónico
+          </label>
           <input
+            id="clienta-email"
             type="email"
-            placeholder="Correo electronico"
-            className="w-full rounded-2xl border border-pink-100 px-5 py-4 outline-none transition focus:border-[var(--primary)]"
+            autoComplete="email"
+            placeholder="Correo electrónico"
+            className="w-full rounded-[16px] border border-[#f3c7d6] bg-white px-4 py-3 text-[15px] text-dreva-text outline-none transition placeholder:text-[#b3a9b0] focus:border-[#d16a97] focus:ring-4 focus:ring-[#ffe7f0]"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
 
-          <input
-            type="password"
-            placeholder="Contrasena"
-            className="w-full rounded-2xl border border-pink-100 px-5 py-4 outline-none transition focus:border-[var(--primary)]"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <label htmlFor="clienta-password" className="sr-only">
+            Contraseña
+          </label>
+          <div className="relative">
+            <input
+              id="clienta-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              placeholder="Contraseña"
+              className="w-full rounded-[16px] border border-[#f3c7d6] bg-white py-3 pl-4 pr-12 text-[15px] text-dreva-text outline-none transition placeholder:text-[#b3a9b0] focus:border-[#d16a97] focus:ring-4 focus:ring-[#ffe7f0]"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((visible) => !visible)}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+              className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-[#d16a97] transition hover:bg-dreva-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
+            >
+              {showPassword ? (
+                <EyeOff className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+              ) : (
+                <Eye className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
+              )}
+            </button>
+          </div>
 
           {errorMessage && (
-            <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+            <p
+              role="alert"
+              className="rounded-[14px] border border-[#f5c6d7] bg-dreva-error-bg px-4 py-3 text-sm font-medium leading-6 text-dreva-error"
+            >
               {errorMessage}
             </p>
           )}
 
           {successMessage && (
-            <p className="rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+            <p
+              role="status"
+              className="rounded-[14px] border border-[#cdedd9] bg-emerald-50 px-4 py-3 text-sm font-medium leading-6 text-emerald-700"
+            >
               {successMessage}
             </p>
           )}
@@ -176,16 +224,16 @@ export default function ClientaRegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-2xl bg-[var(--primary)] py-4 text-sm font-semibold text-white transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-1 w-full rounded-[16px] bg-[#c18098] px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_10px_26px_rgba(193,128,152,0.25)] transition hover:bg-[#a96c83] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "Creando cuenta..." : "Crear cuenta"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-[var(--muted)]">
+        <p className="mt-5 text-center text-[15px] text-dreva-text-muted">
           <Link
             href="/register"
-            className="font-semibold text-[var(--primary)]"
+            className="font-semibold text-[#c22a68] transition hover:text-dreva-action-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dreva-focus/40"
           >
             Elegir otro tipo de registro
           </Link>
